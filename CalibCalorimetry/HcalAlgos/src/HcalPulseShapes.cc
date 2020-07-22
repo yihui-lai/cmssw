@@ -132,7 +132,7 @@ Reco  MC
   theShapes[205] = &siPMShapeData2017_;
   theShapes[206] = &(computeSiPMShapeHE206());
   theShapes[207] = &siPMShapeData2018_;
-  theShapes[208] = &modifiedShape206_;
+  theShapes[208] = &siPMShapeMCRecoRun3_;
   theShapes[301] = &hfShape_;
   //theShapes[401] = new CaloCachedShapeIntegrator(&theZDCShape);
 }
@@ -311,7 +311,7 @@ void HcalPulseShapes::computeSiPMModifiedShape206() {
         0.000131682,  0.000130505,  0.000129344,  0.000128196,  0.000127064,  0.000125945,  0.00012484,  0.00012375,
         0.000122672,  0.000121608,  0.000120558,  0.00011952,  0.000118495,  0.000117482,  0.000116482,  0.000115493}};
 
-  modifiedShape206_.setNBin(nbin);
+  siPMShapeMCRecoRun3_.setNBin(nbin);
 
   double norm = 0.;
   for (unsigned int j = 0; j < nbin; ++j) {
@@ -320,7 +320,7 @@ void HcalPulseShapes::computeSiPMModifiedShape206() {
 
   for (unsigned int j = 0; j < nbin; ++j) {
     nt[j] /= norm;
-    modifiedShape206_.setShapeBin(j, nt[j]);
+    siPMShapeMCRecoRun3_.setShapeBin(j, nt[j]);
   }
 }
 
