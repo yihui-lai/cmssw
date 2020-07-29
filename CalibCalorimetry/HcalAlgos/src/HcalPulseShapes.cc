@@ -27,6 +27,7 @@ Reco  MC
 202   202   =201,                                SiPMs Hamamatsu shape (HO)
 205   203   siPMShapeData2017_,siPMShapeMC2017_  SiPMs from Data, Hamamatsu shape (HE 2017)
 207   206   siPMShapeData2018_,siPMShapeMC2018_  SiPMs from Data, Hamamatsu shape (HE 2018)
+207   208   siPMShapeData2018_,siPMShapeMCRecoRun3_  SiPMs from Data, 2021 MC phase scan
 301   301   hfShape_                             regular HF PMT shape
 401   401                                        regular ZDC shape
 -------------------------------------------------------------------------------------------
@@ -124,7 +125,7 @@ Reco  MC
   computeSiPMShapeHO();
   computeSiPMShapeData2017();
   computeSiPMShapeData2018();
-  computeSiPMModifiedShape206();
+  computeSiPMShapeMCRecoRun3();
 
   theShapes[201] = &siPMShapeHO_;
   theShapes[202] = theShapes[201];
@@ -273,7 +274,7 @@ void HcalPulseShapes::computeHFShape() {
     hfShape_.setShapeBin(j, ntmp[j]);
   }
 }
-void HcalPulseShapes::computeSiPMModifiedShape206() {
+void HcalPulseShapes::computeSiPMShapeMCRecoRun3() {
 //modified shape 206
 //7.2 ns shift in 206
   unsigned int nbin = 250;

@@ -20,6 +20,7 @@ HcalShapes::HcalShapes() : theDbService(nullptr) {
 	205 - SiPMs from Data (HE data 2017)
 	206 - SiPMs Hamamatsu shape (HE 2018)
 	207 - SiPMs from Data (HE 2017)
+        208 - SiPMs from Data, 2021 MC phase scan
         301 - regular HF PMT shape
         401 - regular ZDC shape
   */
