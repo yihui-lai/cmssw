@@ -8,7 +8,8 @@ file="$(ls | grep -i "DQM")"
 echo $file
 
 #clean directory
-rm -r pi50_*.py *.log LSFJOB_* pi50_*.root conf.py mc.root
+rm -rf LSFJOB_*
+rm -f pi*_*.* *.log conf.py mc.root output.root 
 echo "Changing the name of DQM file"
 if [ "$#" -ne 1 ]; then
     echo "Give One version name for DQM root file"

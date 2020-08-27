@@ -2,7 +2,13 @@ import os
 import FWCore.ParameterSet.Config as cms
 from DQMServices.Core.DQMEDHarvester import DQMEDHarvester
 
-process = cms.Process("CONV")
+from Configuration.StandardSequences.Eras import eras
+process = cms.Process("CONV",eras.Run3)
+
+process.load("Configuration.StandardSequences.GeometryDB_cff")
+process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
+from Configuration.AlCa.autoCond import autoCond
+process.GlobalTag.globaltag = autoCond['phase1_2024_realistic']
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
@@ -15,6 +21,7 @@ process.maxEvents = cms.untracked.PSet(
 )
 
 process.source = cms.Source("PoolSource",
+    firstRun = cms.untracked.uint32(1),
     fileNames = cms.untracked.vstring(
        'file:pi50_1.root',
        'file:pi50_2.root',
