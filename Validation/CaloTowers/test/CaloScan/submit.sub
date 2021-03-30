@@ -4,4 +4,5 @@ output                = pi50_$(par1).out
 error                 = pi50_$(par1).err
 log                   = pi50_$(par1).log
 +JobFlavour = "workday" 
+requirements = (OpSysAndVer =?= "CentOS7")
 queue

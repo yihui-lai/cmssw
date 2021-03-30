@@ -1,6 +1,6 @@
-(1) cmsrel CMSSW_10_2_0 (for instance)
+(1) cmsrel CMSSW_11_2_0_pre5 (for instance)
 
-(2) cd CMSSW_10_2_0/src
+(2) cd CMSSW_11_2_0_pre5/src
 
 (3) cmsenv
 
@@ -10,78 +10,68 @@
 
 (6) cd Validation/CaloTowers/test/CaloScan
 
-NB: before step (7) one of the desired templates (template*.py_*) 
-has to be renamed into simple template.py (which is used in step (7) below)
+NB: before step (7) rename template_2021_since_11_2_0_pre3.py  
+into simple template.py (which is used in step (7) below)
 
 (7) ./make_configs.csh  
 creates 50 job configs (each for 1k ev "slice" processing from input file) 
 
-(8) ./submit_batch.csh  (LSF batch) or ./submit_HTCondor.csh (HTCondor batch) 
+(8) ./submit_HTCondor.csh (to lxplus HTCondor batch) 
 
-NB: it uses batch submission 
-(batch.csh for LSF or batch_HTCondor.csh for HTCondor) at CERN 
-
-with input file 
+submitted 50 "parallel" jobs use an input file containg 50k 
+single pions of e=50 GeV randomly distributed in eta-phi 
 /afs/cern.ch/cms/data/CMSSW/Validation/HcalHits/data/620/mc_pi50_eta05.root
-Each of 50 job uses 1K out of total 50K input.
+Each job uses 1K out of total 50K ev input.
 
-In ~30-40 min (in the submission directory, /scan in this case)
-the results of 50 batch jobs will start arriving. 
-Once all 50 jobs finished and 50  *.root files appeared locally, 
+In ~30-40 min (in the submission directory, /CaloScan in this case)
+the results of 50 batch jobs will start arriving for 2021 jobs. 
+NB: in case of 2024 GT is used it may take several hours to finish all the 50 jobs.
 
-(9) ./Merge.sh 10_2_0  (e.g. the extension name for resulting DQM file)
+On lxplus the command  condor_q  shows the status of HTCondor jobs.
+
+Once all 50 jobs finished (condor_q  yields empty list) 
+and 50  *.root files appeared locally - go to the next step.
+
+(9) ./Merge.sh 11_2_0_pre5  (with the extension name for resulting DQM file)
 
 It will do following things:
 
-cmsRun  merging_cfg.py
+(a) cmsRun  merging_cfg.py
 (to produce final DQMxxx.root file)
 
-clean up the directory
-rm -r pi50_*.py *.log LSFJOB_* pi50_*.root
+(b) clean up the directory from a lot of service files
 
-Rename DQMxxx.root file to a convenient name
+(c) Rename DQMxxx.root file to a convenient name
 
 NB: there is naming convention  pi50scan<...>_ECALHCAL_CaloTowers.root
-where <...> can be any meaningful string (to appear in the legend of histos). It generally indicates the release or upgrade status.
+where <...> can be any meaningful string (to appear in the legend of histos). 
+It generally indicates the release or upgrade status.
+For example here it's 11_2_0_pre5 which needs to be given as the argument for Merge.sh
 
-For example here it's 10_2_0 which needs to be given as the argument for Merge.sh
+(d) move this pi50scan<...>_ECALHCAL_CaloTowers.root to Validation/CaloTowers/test/macros
 
-move this pi50scan<...>_ECALHCAL_CaloTowers.root to Validation/CaloTowers/test/macros
+(10) to compare two sets of histos, for instance if you have in  
+Validation/CaloTowers/test/macros   
+pi50scan11_2_0_pre5_ECALHCAL_CaloTowers.root    and
+pi50scan11_2_0_pre3_ECALHCAL_CaloTowers.root
 
+(here "11_2_0_pre5" and "11_2_0_pre3" are mentioned above <...> strings) - 
 
-(10) to compare two sets of histos, for instance if you have in 
-Validation/CaloTowers/test/macros 
-pi50scan10_2_0_ECALHCAL_CaloTowers.root    and
-pi50scan10_2_0_pre6_ECALHCAL_CaloTowers.root
+./RunPions.csh 11_2_0_pre5 11_2_0_pre3  
 
-(here "10_2_0" and "10_2_0_pre6" are mentioned <...> strings) - 
-
-./RunPions.csh 10_2_0 10_2_0_pre6
-
-
-(11) the result appear as the local directory 
-10_2_0_vs_10_2_0_pre6_SinglePi 
+(11) the result appears as the local directory 
+11_2_0_pre5_vs_11_2_0_pre3_SinglePi 
   
 which can be 
 (i) viewed with web browser locally, e.g.
-firefox 10_2_0_vs_10_2_0_pre6_SinglePi/index.html
+firefox 11_2_0_pre5_vs_11_2_0_pre3_SinglePi/index.html
 
 (ii) uploaded to some web server and viewed from anywhere:
 
-https://cms-cpt-software.web.cern.ch/cms-cpt-software/General/Validation/SVSuite/HCAL/calo_scan_single_pi/10_2_0_vs_10_2_0_pre6_SinglePi
+https://cms-cpt-software.web.cern.ch/cms-cpt-software/General/Validation/SVSuite/HCAL/calo_scan_single_pi/11_2_0_pre5_vs_11_2_0_pre3_SinglePi
+
+NB: one need an access right to this particular one!
 
 NB:  hitso labels correspond to aforementioned <...> strings, here
-10_2_0 and 10_2_0_pre6 (as a reference)
+11_2_0_pre5 and 11_2_0_pre3 (as a reference)
 
---------------------------------------------------
-NB: changes in the template since 760pre6
-to cope with a massive generator/smearing rearrangement in
-https://github.com/cms-sw/cmssw/pull/10858
-
-(A) to continue using default GEN source:
-    /afs/cern.ch/cms/data/CMSSW/Validation/HcalHits/data/620/mc_pi50_eta05.root
-to be used template.py_since760pre6 (renaming it back to template.py)
-
-(B) for newly generated GEN:
-    /afs/cern.ch/cms/data/CMSSW/Validation/HcalHits/data/76X/mc_pi50_eta05.root
-to be used template.py_since760pre6_forGEN_760pre6 (renaming it back to template.py)
