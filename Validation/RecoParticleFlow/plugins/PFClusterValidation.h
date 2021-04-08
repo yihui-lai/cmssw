@@ -97,7 +97,7 @@ private:
   MonitorElement* ratio_Esummed_ECAL_HCAL_HO_3_;
   MonitorElement* ratio_Esummed_ECAL_HCAL_4_;
   MonitorElement* ratio_Esummed_ECAL_HCAL_HO_4_;
-
+  MonitorElement* R02_EvsHcalEnergy;
   MonitorElement* egen_MC_;
 };
 

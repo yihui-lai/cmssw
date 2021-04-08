@@ -85,7 +85,37 @@ void HcalRecHitsValidation::bookHistograms(DQMStore::IBooker &ib, edm::Run const
 
     sprintf(histo, "HcalRecHitTask_En_rechits_cone_profile_vs_ieta_all_depths_EH");
     meEnConeEtaProfile_EH = ib.bookProfile(histo, histo, 83, -41.5, 41.5, -100., 2000., " ");
-  }
+
+//energy in matrix
+    sprintf(histo, "Matrix_EcalEnergy");
+    matrix_EcalEnergy = ib.book1D(histo, histo, 2010, -10., 2000.);
+
+    sprintf(histo, "Matrix_HcalEnergy");
+    matrix_HcalEnergy = ib.book1D(histo, histo, 2010, -10., 2000.);
+
+    sprintf(histo, "Matrix_EHcalEnergy");
+    matrix_EHcalEnergy = ib.book1D(histo, histo, 2010, -10., 2000.);
+//number of hits
+    sprintf(histo, "NHits_HB");
+    NHits_HB = ib.book1D(histo, histo, 3000, 0., 12000.);
+    sprintf(histo, "NHits_HE");
+    NHits_HE = ib.book1D(histo, histo, 3000, 0., 12000.);
+
+    sprintf(histo, "Matrix_EvsHcalEnergy");
+    matrix_EvsHcalEnergy = ib.book2D(histo, histo, 210, -10., 200., 210, -10., 200.);
+//pure energy distribution
+    sprintf(histo, "HcalRecHitTask_En_rechits_cone_profile_all_depths");
+    meEnCone = ib.book1D(histo, histo, 2010, -100., 2000.);
+
+    sprintf(histo, "HcalRecHitTask_En_rechits_cone_profile_all_depths_E");
+    meEnCone_E = ib.book1D(histo, histo, 2010, -100., 2000.);
+
+    sprintf(histo, "HcalRecHitTask_En_rechits_cone_profile_all_depths_EH");
+    meEnCone_EH = ib.book1D(histo, histo, 2010, -100., 2000.);
+
+    sprintf(histo, "HcalRecHitTask_En_rechits_cone_profile_all_depths_EvsH");
+    meEnCone_EvsH = ib.book2D(histo, histo, 210, -10., 200., 210, -10., 200.);
+}
 
   // ************** HB **********************************
   if (subdet_ == 1 || subdet_ == 5) {
@@ -205,6 +235,11 @@ void HcalRecHitsValidation::analyze(edm::Event const &ev, edm::EventSetup const 
   double eHcalConeHFL = 0.;
   double eHcalConeHFS = 0.;
 
+  //used for energy in ieta= 1, 2, 3; iphi = 0, 1, 2
+  double eHcalMatrix = 0.;
+  double eEcalMatrix = 0.;
+
+
   // Total numbet of RecHits in HCAL, in the cone, above 1 GeV theshold
   int nrechits = 0;
   int nrechitsCone = 0;
@@ -222,7 +257,7 @@ void HcalRecHitsValidation::analyze(edm::Event const &ev, edm::EventSetup const 
   double eta_MC = -999999.;  // eta of initial particle from HepMC
 
   // HCAL energy around MC eta-phi at all depths;
-  double partR = 0.3;
+  double partR = 0.2;
 
   if (imc != 0) {
     edm::Handle<edm::HepMCProduct> evtMC;
@@ -294,6 +329,9 @@ void HcalRecHitsValidation::analyze(edm::Event const &ev, edm::EventSetup const 
           eEcalCone += en;
           numrechitsEcal++;
         }
+        if ( abs(eta-eta_MC)<0.1309 && abs(phi-phi_MC)<0.1309 ) {
+          eEcalMatrix +=en;
+        }
       }
     }
 
@@ -318,6 +356,9 @@ void HcalRecHitsValidation::analyze(edm::Event const &ev, edm::EventSetup const 
           eEcalCone += en;
           numrechitsEcal++;
         }
+        if ( abs(eta-eta_MC)<0.1309 && abs(phi-phi_MC)<0.1309 ) {
+          eEcalMatrix +=en;
+        }
       }
     }
   }  // end of ECAL selection
@@ -337,6 +378,9 @@ void HcalRecHitsValidation::analyze(edm::Event const &ev, edm::EventSetup const 
     double etaMax = 9999.;
 
     //   CYCLE over cells ====================================================
+    //hits number in HBHE
+    double Nhits_HB=0;
+    double Nhits_HE=0;
 
     for (unsigned int i = 0; i < cen.size(); i++) {
       int sub = csub[i];
@@ -384,7 +428,9 @@ void HcalRecHitsValidation::analyze(edm::Event const &ev, edm::EventSetup const 
           ietaMax = ieta;
         }
       }
-
+      if ( abs(eta-eta_MC)<0.1309 && abs(phi-phi_MC)<0.1309 ) {
+        eHcalMatrix +=en;
+      }
       // The energy and overall timing histos are drawn while
       // the ones split by depth are not
       if (sub == 1 && (subdet_ == 1 || subdet_ == 5)) {
@@ -392,7 +438,7 @@ void HcalRecHitsValidation::analyze(edm::Event const &ev, edm::EventSetup const 
         meLog10Chi2profileHB->Fill(en, chi2_log10);
 
         meRecHitsEnergyHB->Fill(en);
-
+        Nhits_HB++;
         meTEprofileHB_Low->Fill(en, t);
         meTEprofileHB->Fill(en, t);
         meTEprofileHB_High->Fill(en, t);
@@ -402,7 +448,7 @@ void HcalRecHitsValidation::analyze(edm::Event const &ev, edm::EventSetup const 
         meLog10Chi2profileHE->Fill(en, chi2_log10);
 
         meRecHitsEnergyHE->Fill(en);
-
+        Nhits_HE++;
         meTEprofileHE_Low->Fill(en, t);
         meTEprofileHE->Fill(en, t);
       }
@@ -419,11 +465,24 @@ void HcalRecHitsValidation::analyze(edm::Event const &ev, edm::EventSetup const 
         meTEprofileHO_High->Fill(en, t);
       }
     }
+NHits_HB->Fill(Nhits_HB);
+NHits_HE->Fill(Nhits_HE);
 
     if (imc != 0) {
       meEnConeEtaProfile->Fill(double(ietaMax), HcalCone);  //
       meEnConeEtaProfile_E->Fill(double(ietaMax), eEcalCone);
       meEnConeEtaProfile_EH->Fill(double(ietaMax), HcalCone + eEcalCone);
+
+      matrix_HcalEnergy->Fill(eHcalMatrix);
+      matrix_EcalEnergy->Fill(eEcalMatrix);
+      matrix_EHcalEnergy->Fill(eHcalMatrix + eEcalMatrix);
+      matrix_EvsHcalEnergy->Fill(eEcalMatrix, eHcalMatrix);
+      if(double(ietaMax)<=28){
+        meEnCone->Fill(HcalCone);  //
+        meEnCone_E->Fill(eEcalCone);
+        meEnCone_EH->Fill( HcalCone + eEcalCone);
+        meEnCone_EvsH->Fill(eEcalCone, HcalCone);
+      }
     }
 
     //     std::cout << "*** 7" << std::endl;

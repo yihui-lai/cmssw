@@ -119,6 +119,9 @@ void PFClusterValidation::bookHistograms(DQMStore::IBooker& ibooker,
 
   strncpy(histo, "Egen_MC", size);
   egen_MC_ = ibooker.book1D(histo, histo, 50, 0, 50);
+
+  strncpy(histo, "R02_EvsHcalEnergy", size);
+  R02_EvsHcalEnergy = ibooker.book2D(histo, histo, 210, -10., 200., 210, -10., 200.);
 }
 
 void PFClusterValidation::analyze(edm::Event const& event, edm::EventSetup const& c) {

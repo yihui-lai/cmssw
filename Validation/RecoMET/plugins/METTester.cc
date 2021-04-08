@@ -125,6 +125,7 @@ METTester::METTester(const edm::ParameterSet &iConfig) {
   mMETDifference_GenMETTrue_MET300to400 = nullptr;
   mMETDifference_GenMETTrue_MET400to500 = nullptr;
   mMETDifference_GenMETTrue_MET500 = nullptr;
+  mMETparalDifference_GenMETTrue = nullptr;
 }
 void METTester::bookHistograms(DQMStore::IBooker &ibooker, edm::Run const &iRun, edm::EventSetup const & /* iSetup */) {
   ibooker.setCurrentFolder("JetMET/METValidation/" + inputMETLabel_.label());
@@ -140,6 +141,7 @@ void METTester::bookHistograms(DQMStore::IBooker &ibooker, edm::Run const &iRun,
   mSumET = ibooker.book1D("SumET", "SumET", 200, 0, 4000);  // 10GeV
   mMETDifference_GenMETTrue = ibooker.book1D("METDifference_GenMETTrue", "METDifference_GenMETTrue", 500, -500, 500);
   mMETDeltaPhi_GenMETTrue = ibooker.book1D("METDeltaPhi_GenMETTrue", "METDeltaPhi_GenMETTrue", 80, 0, 4);
+  mMETparalDifference_GenMETTrue = ibooker.book1D("METparalDifference_GenMETTrue", "METparalDifference_GenMETTrue", 500, -250, 250);
 
   if (isMiniAODMET) {
     mMETUnc_JetResUp = ibooker.book1D("METUnc_JetResUp", "METUnc_JetResUp", 200, -10, 10);
@@ -160,6 +162,7 @@ void METTester::bookHistograms(DQMStore::IBooker &ibooker, edm::Run const &iRun,
   if (!isMiniAODMET) {
     mMETDifference_GenMETCalo = ibooker.book1D("METDifference_GenMETCalo", "METDifference_GenMETCalo", 500, -500, 500);
     mMETDeltaPhi_GenMETCalo = ibooker.book1D("METDeltaPhi_GenMETCalo", "METDeltaPhi_GenMETCalo", 80, 0, 4);
+    mMETparalDifference_GenMETCalo = ibooker.book1D("METparalDifference_GenMETCalo", "METparalDifference_GenMETCalo", 500, -250, 250);
   }
   if (!isGenMET) {
     mMETDifference_GenMETTrue_MET0to20 =
@@ -218,6 +221,7 @@ void METTester::bookHistograms(DQMStore::IBooker &ibooker, edm::Run const &iRun,
     mPFHFHadronEtFraction = ibooker.book1D("HFHadronEtFraction", "HFHadronEtFraction", 100, 0, 1);
     mPFmuonEtFraction = ibooker.book1D("muonEtFraction", "muonEtFraction", 100, 0, 1);
     mPFHFEMEtFraction = ibooker.book1D("HFEMEtFraction", "HFEMEtFraction", 100, 0, 1);
+    mMETparalDifference_PFMET_GenMET = ibooker.book1D("METparalDifference_PFMET_GenMET", "METparalDifference_PFMET_GenMET", 500, -250, 250);
 
     if (!isMiniAODMET) {
       mPFphotonEt = ibooker.book1D("photonEt", "photonEt", 100, 0, 1000);
@@ -233,7 +237,7 @@ void METTester::bookHistograms(DQMStore::IBooker &ibooker, edm::Run const &iRun,
 
 void METTester::analyze(const edm::Event &iEvent,
                         const edm::EventSetup &iSetup) {  // int counter(0);
-
+/*
   edm::Handle<reco::VertexCollection> pvHandle;
   iEvent.getByToken(pvToken_, pvHandle);
   if (!pvHandle.isValid()) {
@@ -243,7 +247,7 @@ void METTester::analyze(const edm::Event &iEvent,
   const int nvtx = pvHandle->size();
   mNvertex->Fill(nvtx);
   // Collections for all MET collections
-
+*/
   edm::Handle<CaloMETCollection> caloMETs;
   edm::Handle<PFMETCollection> pfMETs;
   edm::Handle<GenMETCollection> genMETs;
@@ -290,7 +294,7 @@ void METTester::analyze(const edm::Event &iEvent,
   mMEy->Fill(MEy);
   mMET->Fill(MET);
   mMETFine->Fill(MET);
-  mMET_Nvtx->Fill((double)nvtx, MET);
+  //mMET_Nvtx->Fill((double)nvtx, MET);
   mMETPhi->Fill(METPhi);
   mSumET->Fill(SumET);
   mMETSig->Fill(METSig);
@@ -315,7 +319,7 @@ void METTester::analyze(const edm::Event &iEvent,
   if (isvalidgenmet) {
     double genMET = genMetTrue->pt();
     double genMETPhi = genMetTrue->phi();
-
+    mMETparalDifference_GenMETTrue->Fill(MET*TMath::Cos(METPhi - genMETPhi) - genMET);
     mMETDifference_GenMETTrue->Fill(MET - genMET);
     mMETDeltaPhi_GenMETTrue->Fill(TMath::ACos(TMath::Cos(METPhi - genMETPhi)));
 
@@ -356,7 +360,7 @@ void METTester::analyze(const edm::Event &iEvent,
       const GenMET *genMetCalo = &(genmetcol->front());
       const double genMET = genMetCalo->pt();
       const double genMETPhi = genMetCalo->phi();
-
+      mMETparalDifference_GenMETCalo->Fill(MET*TMath::Cos(METPhi - genMETPhi) - genMET);
       mMETDifference_GenMETCalo->Fill(MET - genMET);
       mMETDeltaPhi_GenMETCalo->Fill(TMath::ACos(TMath::Cos(METPhi - genMETPhi)));
     } else {
@@ -416,6 +420,8 @@ void METTester::analyze(const edm::Event &iEvent,
   }
   if (isPFMET) {
     const reco::PFMET *pfmet = &(pfMETs->front());
+    mMETparalDifference_PFMET_GenMET->Fill(pfmet->pt()*TMath::Cos(pfmet->phi() - genMetTrue->phi()) - genMetTrue->pt());
+
     mPFphotonEtFraction->Fill(pfmet->photonEtFraction());
     mPFphotonEt->Fill(pfmet->photonEt());
     mPFneutralHadronEtFraction->Fill(pfmet->neutralHadronEtFraction());

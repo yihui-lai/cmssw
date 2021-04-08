@@ -92,6 +92,10 @@ private:
   MonitorElement *mMETDifference_GenMETCalo;
   MonitorElement *mMETDeltaPhi_GenMETCalo;
 
+  MonitorElement *mMETparalDifference_GenMETTrue;
+  MonitorElement *mMETparalDifference_GenMETCalo;
+  MonitorElement *mMETparalDifference_PFMET_GenMET;
+
   // MET Uncertainity Variables
   MonitorElement *mMETUnc_JetResUp;
   MonitorElement *mMETUnc_JetResDown;

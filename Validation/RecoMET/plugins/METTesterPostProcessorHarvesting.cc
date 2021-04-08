@@ -58,7 +58,8 @@ void METTesterPostProcessorHarvesting::dqmEndJob(DQMStore::IBooker &ibook_, DQMS
         iget_.get(rundir_reco + "/" + "METResolution_GenMETTrue_MET100to150");
     MonitorElement *mMETDifference_GenMETTrue_MET300to400_Reco =
         iget_.get(rundir_reco + "/" + "METResolution_GenMETTrue_MET300to400");
-
+    MonitorElement *mMETparalDifference_GenMETTrue =
+        iget_.get(rundir_reco + "/" + "mMETparalDifference_GenMETTrue");
     std::vector<MonitorElement *> ME_Reco;
     ME_Reco.push_back(mMET_Reco);
     ME_Reco.push_back(mMETPhi_Reco);

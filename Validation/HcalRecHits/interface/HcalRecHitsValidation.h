@@ -105,6 +105,20 @@ private:
   MonitorElement *meEnConeEtaProfile_E;
   MonitorElement *meEnConeEtaProfile_EH;
 
+
+  MonitorElement *matrix_EcalEnergy;
+  MonitorElement *matrix_HcalEnergy;
+  MonitorElement *matrix_EHcalEnergy;
+  MonitorElement *matrix_EvsHcalEnergy;
+
+  MonitorElement *NHits_HB;
+  MonitorElement *NHits_HE;
+
+  MonitorElement *meEnCone;
+  MonitorElement *meEnCone_E;
+  MonitorElement *meEnCone_EH;
+  MonitorElement *meEnCone_EvsH;
+
   // energy of rechits
   MonitorElement *meRecHitsEnergyHB;
   MonitorElement *meRecHitsEnergyHE;
