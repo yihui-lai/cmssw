@@ -6,6 +6,7 @@ ROOT.gSystem.Load("libFWCoreFWLite")
 ROOT.FWLiteEnabler.enable()
 ROOT.gSystem.Load("libDataFormatsFWLite")
 ROOT.gSystem.Load("libSimDataFormatsGeneratorProducts")
+ROOT.gSystem.Load("libDataFormatsHepMCCandidate")
 from DataFormats.FWLite import Events, Handle
 
 info = Handle("io_v1::GenEventInfoProduct")
