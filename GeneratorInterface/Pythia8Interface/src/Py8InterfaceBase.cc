@@ -85,6 +85,13 @@ namespace gen {
     fMasterGen->settings.addFlag("BiasedTauDecayer:eDecays", true);
     fMasterGen->settings.addFlag("BiasedTauDecayer:muDecays", true);
 
+    //add settings for the Pluto-style eta/eta' -> 4-lepton(+2pi) decayer
+    fMasterGen->settings.addFlag("Pluto:filter", false);
+    fMasterGen->settings.addFlag("Pluto:allowForcedDecay", false);
+    fMasterGen->settings.addMode("Pluto:parent", 221, true, true, 221, 331);
+    fMasterGen->settings.addWord("Pluto:mode", "2mu2e");
+    fMasterGen->settings.addWord("Pluto:model", "pointlike");
+
     //add settings for resonance decay filter
     fMasterGen->settings.addFlag("ResonanceDecayFilter:filter", false);
     fMasterGen->settings.addFlag("ResonanceDecayFilter:exclusive", false);

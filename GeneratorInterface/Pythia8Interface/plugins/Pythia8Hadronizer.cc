@@ -39,6 +39,9 @@ using namespace Pythia8;
 //biased tau decayer
 #include "GeneratorInterface/Pythia8Interface/interface/BiasedTauDecayer.h"
 
+//pluto eta/eta' -> 4-lepton(+2pi) decayer
+#include "GeneratorInterface/Pythia8Interface/interface/PlutoDecayer.h"
+
 //decay filter hook
 #include "GeneratorInterface/Pythia8Interface/interface/ResonanceDecayFilterHook.h"
 
@@ -183,6 +186,9 @@ private:
 
   // biased tau decayer
   std::shared_ptr<BiasedTauDecayer> fBiasedTauDecayer;
+
+  // pluto eta/eta' -> 4-lepton(+2pi) decayer
+  std::shared_ptr<PlutoDecayer> fPlutoDecayer;
 
   //resonance decay filter hook
   std::shared_ptr<ResonanceDecayFilterHook> fResonanceDecayFilterHook;
@@ -513,6 +519,15 @@ bool Pythia8Hadronizer::initializeForInternalPartons() {
     fMasterGen->setDecayPtr(fBiasedTauDecayer, handledParticles);
   }
 
+  bool plutoDecayer = fMasterGen->settings.flag("Pluto:filter");
+  if (plutoDecayer) {
+    if (!fPlutoDecayer.get())
+      fPlutoDecayer.reset(new PlutoDecayer(fMasterGen.get(), &(fMasterGen->settings)));
+    std::vector<int> handledParticles;
+    handledParticles.push_back(fMasterGen->settings.mode("Pluto:parent"));
+    fMasterGen->setDecayPtr(fPlutoDecayer, handledParticles);
+  }
+
   bool resonanceDecayFilter = fMasterGen->settings.flag("ResonanceDecayFilter:filter");
   if (resonanceDecayFilter) {
     fResonanceDecayFilterHook.reset(new ResonanceDecayFilterHook);
@@ -678,6 +693,15 @@ bool Pythia8Hadronizer::initializeForExternalPartons() {
     std::vector<int> handledParticles;
     handledParticles.push_back(15);
     fMasterGen->setDecayPtr(fBiasedTauDecayer, handledParticles);
+  }
+
+  bool plutoDecayer = fMasterGen->settings.flag("Pluto:filter");
+  if (plutoDecayer) {
+    if (!fPlutoDecayer.get())
+      fPlutoDecayer.reset(new PlutoDecayer(fMasterGen.get(), &(fMasterGen->settings)));
+    std::vector<int> handledParticles;
+    handledParticles.push_back(fMasterGen->settings.mode("Pluto:parent"));
+    fMasterGen->setDecayPtr(fPlutoDecayer, handledParticles);
   }
 
   bool resonanceDecayFilter = fMasterGen->settings.flag("ResonanceDecayFilter:filter");
