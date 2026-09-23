@@ -7,6 +7,7 @@
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeLLPiPi.h"
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoLLPiPiChPT.h"
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
 
 #include <random>
 
@@ -441,4 +442,67 @@ TEST_CASE("PlutoIdenticalDoubleDalitz useEtaPade branch: bound survives, closure
     }
     REQUIRE((sum - parent).Vect().Mag() + std::abs(sum.E() - parent.E()) < 1e-9);
   }
+}
+
+TEST_CASE("PlutoEtaPrimeTFF: normalization, slope, seam continuity, omega peak, bounds", "[PlutoDecayer]") {
+  const double mEtaP = 0.95778;
+  auto F = [](double q2) { return std::sqrt(gen::pluto::etaPrimeFormFactorNormSq(q2)); };
+
+  REQUIRE(F(0.) == 1.0);
+  // Slope at the origin (GeV^-2); arXiv:1307.2061 Table IV Pade gives ~1.42.
+  const double h = 1e-5;
+  REQUIRE(std::abs((F(h) - 1.0) / h - 1.42) < 0.05);
+
+  // Padé -> VMD seam is magnitude-matched.
+  const double seam = gen::pluto::etaprime_tff::matchQ2;
+  REQUIRE(std::abs(gen::pluto::etaPrimeFormFactorNormSq(seam + 1e-9) /
+                       gen::pluto::etaPrimeFormFactorNormSq(seam) - 1.) < 1e-6);
+
+  // Omega peak: the VMD region must have its maximum at the omega mass and
+  // dominate the continuum below the seam.
+  double best = 0, bestMass = 0;
+  for (double m = 0.3; m < 0.95; m += 0.0005) {
+    const double v = gen::pluto::etaPrimeFormFactorNormSq(m * m);
+    REQUIRE(std::isfinite(v));
+    if (v > best) {
+      best = v;
+      bestMass = m;
+    }
+  }
+  REQUIRE(std::abs(bestMass - 0.7825) < 0.005);
+  REQUIRE(best > 5 * gen::pluto::etaPrimeFormFactorNormSq(0.6 * 0.6));
+
+  // Samplers: closure, masses, and the rejection bound is never violated
+  // (an exceeded bound throws) over many attempts, including the omega peak.
+  const double mMu = 0.105658, mE = 0.000511;
+  std::mt19937_64 rng(2468101);
+  auto flat = [&]() { return std::generate_canonical<double, 53>(rng); };
+  const TLorentzVector parent(0, 0, 0, mEtaP);
+
+  const double bound1 = gen::pluto::etaPrimeSingleBound(mEtaP, mMu);
+  const double bound1e = gen::pluto::etaPrimeSingleBound(mEtaP, mE);
+  const double bound2 = gen::pluto::etaPrimeDoubleBound(mEtaP, mMu, mE);
+  REQUIRE(bound1 >= best);
+  REQUIRE(bound2 >= best);
+  int inOmegaWindow = 0;
+  const int n = 4000;
+  for (int i = 0; i < n; ++i) {
+    auto out = gen::pluto::singleDalitzEtaPrime(parent, mMu, bound1, flat);
+    TLorentzVector sum = out[0] + out[1] + out[2];
+    REQUIRE((sum - parent).Vect().Mag() + std::abs(sum.E() - parent.E()) < 1e-9);
+    REQUIRE(std::abs(out[0].M() - mMu) < 1e-8);
+    const double mll = (out[0] + out[1]).M();
+    if (mll > 0.77 && mll < 0.79)
+      ++inOmegaWindow;
+    REQUIRE_NOTHROW(gen::pluto::singleDalitzEtaPrime(parent, mE, bound1e, flat));
+    auto four = gen::pluto::mixedPointlikeEtaPrime(parent, mMu, mE, bound2, flat);
+    TLorentzVector sum4;
+    for (unsigned k = 0; k < 4; ++k) {
+      sum4 += four[k];
+      REQUIRE(std::abs(four[k].M() - (k < 2 ? mMu : mE)) < 1e-8);
+    }
+    REQUIRE((sum4 - parent).Vect().Mag() + std::abs(sum4.E() - parent.E()) < 1e-9);
+  }
+  // The omega/rho region carries a few percent of the eta' -> mu mu gamma rate.
+  REQUIRE(inOmegaWindow > 0.02 * n);
 }

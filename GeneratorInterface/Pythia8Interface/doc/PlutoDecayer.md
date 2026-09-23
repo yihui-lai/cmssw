@@ -17,7 +17,7 @@ Added to `Pythia8::Settings` in `Py8InterfaceBase.cc`/`Py8HMC3InterfaceBase.cc`:
 | `Pluto:filter`              | `on`/`off`                                                 | `off`        |
 | `Pluto:allowForcedDecay`    | `on`/`off`, must be explicitly `on`                        | `off`        |
 | `Pluto:parent`              | `221` (eta) or `331` (eta')                                | `221`        |
-| `Pluto:mode`                | `2mu`, `2mugamma`, `4e`, `2mu2e`, `4mu`, `2e2pi`, `2mu2pi`  | `2mu2e`      |
+| `Pluto:mode`                | `2mu`, `2mugamma`, `2egamma`, `4e`, `2mu2e`, `4mu`, `2e2pi`, `2mu2pi`  | `2mu2e`      |
 | `Pluto:model`               | `pointlike` or `phaseSpace`                                | `pointlike`  |
 
 `Pluto:allowForcedDecay` is a deliberate safety interlock: once attached,
@@ -81,7 +81,9 @@ reference, not a Pluto-specific one:
   separately for the direct and exchange pairings' own invariant masses,
   *before* they interfere -- for **eta** this is the data-fitted Pade TFF
   from `interface/PlutoEtaTFF.h` (arXiv:1504.07742); for **eta'** it is
-  still the generic rho0-pole model. See "Literature read and applied"
+  still the generic rho0-pole model (the eta' Pade+VMD TFF of
+  `PlutoEtaPrimeTFF.h` is only |F|^2, and 4e/4mu needs the complex
+  amplitude with phase continuity across the Pade/VMD seam -- not done). See "Literature read and applied"
   below for why the amplitude-level (not probability-level) placement was
   needed, and why the existing `|D-X|^2<=2(|D|^2+|X|^2)` bound needed no
   re-derivation to support it (it holds for any complex D, X, dressed or
@@ -93,7 +95,8 @@ reference, not a Pluto-specific one:
   single-virtual form factors (arXiv:1511.04916 Eq. 8's "standard
   factorisation ansatz") -- for **eta**, `mixedPointlikeEtaPade` uses the
   data-fitted Pade TFF (`interface/PlutoEtaTFF.h`, arXiv:1504.07742); for
-  **eta'**, `mixedPointlikeResonant` uses the generic rho0-pole model.
+  **eta'**, `mixedPointlikeEtaPrime` uses the two-regime Pade + rho/omega/phi
+  VMD TFF of `interface/PlutoEtaPrimeTFF.h` (see below).
 - **`2e2pi`, `2mu2pi`** (`interface/PlutoLLPiPiChPT.h`): eta/eta' ->
   l+ l- pi+ pi-. As of the latest pass this is **no longer** the
   constant-form-factor Petri baseline -- it uses the mass-dependence
@@ -106,13 +109,17 @@ reference, not a Pluto-specific one:
   `PlutoDecayer` for the mass-dependence). See "Literature read and
   applied" and "Known gaps" below for exactly what is and isn't a faithful
   port of that paper.
-- **`2mugamma`** (`interface/PlutoSingleDalitz.h`): eta/eta' -> gamma l+ l-,
+- **`2mugamma`, `2egamma`** (`interface/PlutoSingleDalitz.h`): eta/eta' -> gamma l+ l-,
   the standard Kroll-Wada single-Dalitz shape. **eta** uses
   `singleDalitzEtaPade`, dressed by the data-fitted Pade TFF
   (`interface/PlutoEtaTFF.h`, arXiv:1504.07742 Appendix A) instead of a
-  constant; **eta'** uses `singleDalitz` with the generic rho0-pole model
-  (matches EvtGen's `EvtEta2MuMuGamma`). See "Known gaps" below for the
-  eta' omega-resonance gap this doesn't close.
+  constant; **eta'** uses `singleDalitzEtaPrime`, dressed by the two-regime
+  transition form factor of arXiv:1511.04916 Sec. 2 (`interface/PlutoEtaPrimeTFF.h`):
+  the eta'-specific Pade P^6_1 of arXiv:1307.2061 Table IV below
+  sqrt(s)=0.70 GeV, and a coherent rho+omega+phi VMD sum above, with the
+  VMD branch rescaled (real factor) to match the Pade magnitude at the
+  seam. This reproduces the omega peak (see "Literature read and applied:
+  eta' TFF" below). `2egamma` is the electron version of `2mugamma`.
 - **`2mu`**: trivial isotropic two-body eta/eta' -> mu+ mu- (closed form, no
   rejection sampling -- a two-body decay has no shape to model).
 
@@ -284,9 +291,11 @@ For eta' specifically, Fig. 5 additionally shows the TFF has a genuine
 **omega resonance peak around 0.8 GeV** in the dilepton mass spectrum, on
 top of the rho contribution -- "the contribution of the rho resonance bends
 the distribution, while the inclusion of the omega resonance accounts for
-the sharp peak around 0.8 GeV." **`PlutoSingleDalitz.h`'s rho-only VMD fix
-(matching EvtGen, which also only has rho) is therefore still incomplete
-for `2mugamma` with `parent=331`** -- it is missing the omega peak. For eta,
+the sharp peak around 0.8 GeV." **The rho-only VMD model (matching EvtGen, which also only has rho) was
+incomplete for `2mugamma` with `parent=331` -- it was missing the omega
+peak. This has since been fixed for eta' `2mugamma`/`2egamma`/`2mu2e`
+by `PlutoEtaPrimeTFF.h` (next section); the rho-only single-Dalitz
+sampler `singleDalitz` remains in the tree only for reference/tests.** For eta,
 this doesn't apply: eta's accessible dilepton mass never reaches the
 rho/omega region at all (max ~0.3 GeV^2 vs. the pole at ~0.6 GeV^2), so the
 rho-pole fix is a good approximation there, consistent with this paper's
@@ -336,6 +345,45 @@ the interference *bookkeeping* is correct for both parents; the *physics
 content* dressing it is an approximation of varying quality --
 data-fitted and eta-specific for eta, generic for eta'.
 
+**The digitized-figure comparison (see below) checks this directly, and
+the honest history of getting a trustworthy number for it is worth
+recording.** Two independent digitizations of these figures were made
+during development and initially disagreed: a PDF-vector-extraction
+pipeline (reading the source PDFs' own drawing commands directly, a
+local development tool that was never committed) put `eta2mu2e`'s
+dimuon-mass^2 peak at a visibly *higher* mass than the user-provided
+reference CSVs now in `test/pluto_validation/csv/` did -- about a ~0.014 GeV^2
+constant offset across the rise, peak, and kinematic endpoint alike. The
+vector-extraction pipeline's own peak was checked against the source PDF
+(pixel-exact overlay onto the rendered page) and against the exact
+physical kinematic endpoint, and matched both -- but the user identified
+their own CSVs as the correct reference and directed that they be used,
+and `test/pluto_validation/` compares against those now. Using the CSV
+reference, the picture is considerably better than the vector-extraction
+comparison had suggested:
+
+| Channel                 | paper peak (GeV or GeV^2) | MC peak | ratio |
+|--------------------------|---------------------------|---------|-------|
+| eta `2mu2e` (dimuon)      | 0.0530                    | 0.0595  | 1.12  |
+| eta' `2mu2e` (dimuon)     | 0.0577                    | 0.0664  | 1.15  |
+| eta `4mu`                 | 0.0532                    | 0.0509  | 0.96  |
+| eta' `4mu`                | 0.0619                    | 0.0575  | 0.93  |
+| eta `2mugamma` (dimuon)   | 0.2582                    | 0.2422  | 0.94  |
+
+-- all within ~15% on peak position, `4mu` and `2mugamma` within a few
+percent, for a shape statistic already noted elsewhere in this doc to be
+a fairly sensitive one. (The eta' `2mugamma` result is discussed in the next section; it
+was excluded here while the omega peak was missing.)
+Separately, before the reference-data discrepancy was identified, the
+base (constant-F) kinematic formula was checked term-by-term against
+Petri's thesis (arXiv:1010.2378) Eq. 3.42 -- the fully angle-integrated
+double-Dalitz rate for the pointlike (QED) case -- and matches exactly
+(`lambda^(3/2)`, `beta1*beta2` to the first power each, `1/(s1*s2)`
+canceled by the log-uniform s1/s2 proposal density). That check remains
+valid regardless of which reference data is used, and rules out a
+base-formula bug in `mixedPointlike`/`identicalPointlike` as a
+contributor to any remaining gap.
+
 ### Literature read and applied: arXiv:1504.07742 (the eta-specific TFF)
 
 **Escribano, Masjuan, Sanchez-Puertas, arXiv:1504.07742**, "The eta
@@ -381,17 +429,20 @@ of factors. Still a real bug, now fixed and regression-tested -- a
 different caller using the unsquared value directly would have gotten it
 wrong.
 
-**Cross-checked against real data (Figs. 8-11) with a digitized
-comparison, saved and reproducible**: see
-`test/validation/README.md` for the scripts (`digitize_figures.py`,
-`compare_papers.cc`, `build_comparison.py`) that digitize
-arXiv:1511.04916's own Figs. 8-11 (eta/eta' -> 2mu2e dimuon/dielectron
-mass^2, eta/eta' -> 4mu one-pair mass^2 "Total distribution") directly
-from the published PDF and overlay them against this code's own generated
-shapes, area-normalized. Both digitization and MC generation are checked
-into the repository so this comparison can be redone against any future
-physics change, not just eyeballed once. Artifact:
-https://claude.ai/artifact/BAgVZtbngGv1SfFZ1FiXrZ .
+**Cross-checked against real data with a digitized comparison, saved and
+reproducible**: see `test/pluto_validation/README.md` for the scripts
+(`run_validation.sh`, `compare_papers.cc`, `make_comparison_data.py`)
+that overlay this code's output against independently-digitized
+reference curves from arXiv:1511.04916's own published figures
+(`test/pluto_validation/csv/`). Covers `eta`/`eta'` -> `2mugamma` (dilepton
+mass, both lepton flavors), `2mu2e` (dimuon/dielectron mass^2), `4e` and
+`4mu` (pair mass^2, "Total distribution") -- twelve panels, all four
+parent x mode combinations this document tracks except `2e2pi`/`2mu2pi`
+(covered by the second paper below) and `2mu` (trivial, no shape to
+check). Both the reference data and the MC generation are checked into
+the repository so this comparison can be redone against any future
+physics change, not just eyeballed once.
+Artifact: https://claude.ai/artifact/BAgVZtbngGv1SfFZ1FiXrZ .
 
 **arXiv:0705.0954** (Borasoy/Nissler, chiral unitary approach to
 eta(')->pi+pi-l+l-) was read at the equation level too (an independent,
@@ -410,26 +461,70 @@ cross-check/sanity bound on how much uncertainty to expect from the
 `2mu2pi`/`2e2pi` channels generally.
 
 **Cross-checked against real data (Fig. 7) with a digitized comparison,
-same pipeline and same caveats as the arXiv:1511.04916 comparison above**:
-`test/validation/digitize_figures_0705.py` digitizes this paper's Fig. 7
-(the dilepton mass spectrum, `k^2 * dGamma/d(sqrt(k^2))`, for all four of
-`eta`/`eta'` x `e+e-`/`mu+mu-`) directly from the published PDF, and
-`compare_papers.cc`/`build_comparison.py` overlay it against this code's
-own `llpipiChPT` output (the events are histogrammed in dilepton mass,
-each weighted by its own mass^2, to match the paper's k^2 weighting,
-before area-normalizing). Peak positions: `eta->pi+pi-e+e-` 70 MeV (paper)
-vs. 66 MeV (this code); `eta->pi+pi-mu+mu-` 217 vs. 219 MeV (both close
-matches); `eta'->pi+pi-mu+mu-` 202 vs. 246 MeV; `eta'->pi+pi-e+e-` 99 vs.
-131 MeV (both eta' channels show a real, non-digitization-noise shape
-shift). This is directionally consistent with the ~43% eta'->mumu
-normalization tension against arXiv:2210.14925 that this paper's own
-Table 1 already showed above -- **the two theoretical approaches genuinely
-disagree more for eta' than for eta**, and this code (built from
-arXiv:2210.14925's amplitude) inherits that disagreement when compared
-against arXiv:0705.0954's independent calculation. The eta channels, where
-the two papers largely agree, match well here too. Same artifact as
-above: https://claude.ai/artifact/BAgVZtbngGv1SfFZ1FiXrZ (second section
-of the page).
+same reference-data approach as the arXiv:1511.04916 comparison above**:
+`test/pluto_validation/csv/Fig7_{eta,etaprime}_to_pipi_{ee,mumu}.csv` are
+independently-digitized reference curves for Fig. 7's dilepton mass
+spectrum (`k^2 * dGamma/d(sqrt(k^2))`, for all four of `eta`/`eta'` x
+`e+e-`/`mu+mu-`, the paper's own "minimal chi^2 fit" central curve from
+each panel's 1-sigma band), and `compare_papers.cc`/`make_comparison_data.py`
+overlay them against this code's own `llpipiChPT` output (the events are
+histogrammed in dilepton mass, each weighted by its own mass^2, to match
+the paper's k^2 weighting, before area-normalizing). Peak positions:
+`eta->pi+pi-e+e-` 69 MeV (paper) vs. 66 MeV (this code); `eta->pi+pi-mu+mu-`
+217 vs. 218 MeV (both close matches); `eta'->pi+pi-mu+mu-` 240 vs. 246 MeV
+(also close); `eta'->pi+pi-e+e-` 115 vs. 131 MeV (the one channel with a
+real, non-negligible shape difference). This is directionally consistent
+with the ~43% eta'->mumu normalization tension against arXiv:2210.14925
+that this paper's own Table 1 already showed above -- the two theoretical
+approaches disagree somewhat more for eta' than for eta, and this code
+(built from arXiv:2210.14925's amplitude) inherits some of that
+disagreement when compared against arXiv:0705.0954's independent
+calculation, though the effect is smaller here than an earlier pass at
+this same comparison (using a different digitization of the same figure)
+had suggested. Same artifact as above:
+https://claude.ai/artifact/BAgVZtbngGv1SfFZ1FiXrZ (second section of the
+page).
+
+### Literature read and applied: eta' TFF with the omega resonance (arXiv:1307.2061 + arXiv:1511.04916 Sec. 2)
+
+`interface/PlutoEtaPrimeTFF.h` implements the paper's two-regime eta'
+transition form factor for **eta' `2mugamma`, `2egamma`, `2mu2e`** (factorized
+`F(s1)F(s2)` in the latter):
+
+- sqrt(s) <= 0.70 GeV: eta'-specific Pade P^6_1 with the Table IV
+  coefficients of arXiv:1307.2061 (`t1..t6`, `r1`). Table IV is quoted to
+  limited precision; F(0)=1 is exact by construction (normalized by t1) and
+  the resulting slope is 1.42 GeV^-2 (test-checked).
+- sqrt(s) > 0.70 GeV: `F = (sum w_V)^-1 sum w_V M_V^2/(M_V^2 - q^2 - i M_V Gamma_V(q^2))`
+  for V = rho, omega, phi, with an energy-dependent rho width and constant
+  omega/phi widths, magnitude-matched to the Pade at the seam.
+
+**Honest caveat on the weights.** rho -> eta' gamma and omega -> eta' gamma
+are kinematically forbidden (only phi -> eta' gamma is open), so the paper's
+PDG-derived `w_V = g_VPgamma/(2 g_Vgamma)` cannot be evaluated directly for
+rho/omega. The weights here are instead derived from quark-flavour-basis
+mixing (phi_P = 39.6 deg): `w_rho : w_omega : w_phi = sin(phi)/(2 sqrt2) :
+sin(phi)/(18 sqrt2) : cos(phi)/9` (the rho:omega ratio 9:1 follows from
+(e_u-e_d)^2 : (e_u+e_d)^2). They are validated against the reference
+curves, not against the paper's numerical weights.
+
+**Validation against the digitized reference (`test/pluto_validation/csv/`)**:
+
+| Quantity (eta' `2mugamma`, dimuon mass)        | MC vs reference |
+|------------------------------------------------|-----------------|
+| continuum 0.2-0.75 GeV (normalized at 0.4-0.6) | within ~7%      |
+| omega-peak bin (0.777 GeV, bin-averaged)       | ratio 1.03      |
+| tail 0.80-0.85 GeV                             | 25-40% low (known residual) |
+| peak position                                  | 0.777 GeV (reference 0.782; was 0.255 with rho-only) |
+
+For eta' `2mu2e` the dimuon M^2 shape agrees with Fig. 10 to ~2-6% from
+0.05 to 0.5 GeV^2. The remaining tail deficit above the omega is the
+rho-tail / width parameterization and was not tuned away.
+
+**Still not done for eta'**: `4e`/`4mu` keep the rho-pole model. Their
+amplitude-level dressing needs the complex TFF with a phase that is
+continuous across the Pade/VMD seam; the Pade branch is real, so a
+naive real rescale is not sufficient there.
 
 ### Known gaps (do not treat as production-validated yet)
 
@@ -437,10 +532,10 @@ of the page).
 |---------------------------|-------------|-------------------------------------------------------------------------|
 | `2mu`                     | eta, eta'   | Trivial 2-body kinematics; no shape to get wrong. Build+run verified. |
 | `2mugamma`                | eta         | **Fixed**: rho-pole VMD factor matching EvtGen's `EvtEta2MuMuGamma`; confirmed a good approximation for eta by arXiv:1511.04916 (eta never reaches the rho/omega region, q^2 up to 0.30 GeV^2 vs. the rho pole at 0.60). Build+run verified. |
-| `2mugamma`                | eta'        | Rho-pole VMD factor applied, but **known incomplete**: eta''s accessible q^2 (up to 0.92 GeV^2 -- corrected from an earlier, wrong estimate of 0.56 in this doc) reaches well past the rho pole (0.60) into the region arXiv:1511.04916 says needs an omega-resonance contribution too (its ~0.8 GeV peak, i.e. M^2~0.64 GeV^2). Omega is **not included**, here or in EvtGen's model. Build+run verified (no crash), shape known-incomplete. |
+| `2mugamma`, `2egamma`     | eta'        | **Fixed**: two-regime Pade + rho/omega/phi VMD TFF (`PlutoEtaPrimeTFF.h`); omega peak reproduced (bin-averaged peak ratio 1.03 vs. reference, continuum ~7%). VMD weights quark-model-derived, not PDG-derived (see section above); 25-40% tail deficit at 0.80-0.85 GeV. Catch2-tested; standalone-compiled (not yet `scram b`/`cmsRun`-verified in the shared area). |
 | `2mu2e`                   | eta         | **Fixed**: factorized rho-pole double-virtual form factor per arXiv:1511.04916 Eq. 8; that paper shows constant-F undershoots by ~50%. Eta's dilepton reach stays below the rho pole (like `2mugamma`), so this fix should be a good approximation here. Build+run verified. |
-| `2mu2e`                   | eta'        | Same fix applied, but has the **same omega gap as eta' `2mugamma`**: its dimuon pair mass reaches up toward M^2(eta')=0.92 GeV^2 (confirmed from the actual generated histogram, which extends to ~0.9 GeV^2) since the companion (electron) pair is effectively massless and imposes no cap -- this was stated too narrowly earlier in this doc as only affecting `2mugamma`. arXiv:1511.04916 shows constant-F undershoots eta' by a factor ~2 overall; the fix captures the rho part of that but not the omega part. Build+run verified. |
-| `4e`, `4mu`               | eta, eta'   | **Methodology fixed, physics content still approximate**: the direct/exchange interference now correctly dresses each diagram's photon propagators with the amplitude-level rho0-pole factor at its own invariant mass (previously a real bug -- constant F=1 everywhere). But the form factor itself is still the simple single-rho-pole model, *not* arXiv:1511.04916's actual double-virtual TFF (their factorization ansatz/Chisholm approximants, whose coefficients weren't fully given in the pages read). So this addresses *where* the correction was structurally missing, not the full *size* of the originally-quantified gap (~6-20% for `4e`, ~60%-factor-2.2 for `4mu`). Unit-tested (envelope bound survives, closure, confirmed non-trivial vs. constant-F) and `cmsRun`-verified (500 events, all four parent x mode combinations). |
+| `2mu2e`                   | eta'        | **Fixed**: factorized `F(s1)F(s2)` of the same eta' TFF (Fig. 10 dimuon shape within ~2-6% for 0.05-0.5 GeV^2). Catch2-tested; not yet `cmsRun`-verified in the shared area. |
+| `4e`, `4mu`               | eta, eta'   | **Methodology fixed, physics content still approximate**: the direct/exchange interference now correctly dresses each diagram's photon propagators with the amplitude-level rho0-pole factor at its own invariant mass (previously a real bug -- constant F=1 everywhere). But the form factor itself is still the simple single-rho-pole model, *not* arXiv:1511.04916's actual double-virtual TFF (their factorization ansatz/Chisholm approximants, whose coefficients weren't fully given in the pages read). So this addresses *where* the correction was structurally missing, not the full *size* of the originally-quantified gap (~6-20% for `4e`, ~60%-factor-2.2 for `4mu`). Unit-tested (envelope bound survives, closure, confirmed non-trivial vs. constant-F) and `cmsRun`-verified (500 events, all four parent x mode combinations). **`4e` now has a digitized-figure comparison too** (previously only `4mu` did) -- both eta and eta' `4e`/`4mu` shapes visually checked against arXiv:1511.04916's own "Total distribution" curves, see below. |
 | `2e2pi`, `2mu2pi`         | eta, eta'   | **Replaced**: now uses `PlutoLLPiPiChPT.h`, mass-dependence from arXiv:2210.14925 (read; validated against measured BRs for both parents' e+e- channels) combined with the existing (EvtGen-cross-checked) angular shape. The pi-pi Omnes function is **approximated** by a single rho Breit-Wigner (the paper's own authors' exact parametrization isn't public); the angular part is **not** re-derived from this paper's full amplitude. `PlutoEtaPrimeLLPiPi.h` (EvtGen-matched, eta'-only) remains in the codebase, tested, but is no longer the active model. Build+run verified for all four (parent x mode) combinations, plus the full unit test suite. **Cross-checked against arXiv:0705.0954 Fig. 7** (digitized, see above): eta channels' dilepton-mass peak positions match well (e+e-: 70 vs. 66 MeV; mu+mu-: 217 vs. 219 MeV); eta' channels show a real shape difference (e+e-: 99 vs. 131 MeV; mu+mu-: 202 vs. 246 MeV), consistent with the ~43% eta'->mumu tension already known to exist between these two papers' independent calculations. |
 | `phaseSpace` (all modes)  | eta, eta'   | Uniform phase space, no dynamics claimed; working as a kinematic control only. Build+run verified. |
 
@@ -451,11 +546,13 @@ the abstract -- see the sections above for what each one actually
 contributed: 1511.04916 and 2210.14925 drove the `2mugamma`/`2mu2e`/
 `4e`/`4mu`/`2e2pi`/`2mu2pi` model changes; 1504.07742 supplied the
 eta-specific Pade TFF coefficients; 0705.0954 is an independent
-cross-check (not ported) with its own digitized-figure comparison. Two
-independent digitized-figure comparisons are checked into
-`test/validation/` and kept reproducible against future physics changes:
-arXiv:1511.04916 Figs. 8-11 (`2mu2e`/`4mu`, both parents) and
-arXiv:0705.0954 Fig. 7 (`2e2pi`/`2mu2pi`, both parents).
+cross-check (not ported) with its own digitized-figure comparison. The reference
+curves (digitized from the papers' figures) and the scripts that overlay this
+code's output on them are checked into `test/pluto_validation/` and re-run
+against whatever physics is currently in the tree (`./run_validation.sh`, see
+its README): arXiv:1511.04916's `2mugamma`/`2mu2e`/`4e`/`4mu` (twelve panels,
+both parents) and arXiv:0705.0954 Fig. 7's `2e2pi`/`2mu2pi` (four panels, both
+parents) -- sixteen panels in total.
 
 ### Summary: fixed vs. approximated vs. truly missing
 
@@ -470,10 +567,14 @@ resonance region).
 **A real bug/methodology gap was fixed, but the physics plugged into the
 fix is still an approximation, not a literal port of either paper's full
 model**:
+- eta' `2mugamma`/`2egamma`/`2mu2e`: Pade + rho/omega/phi VMD TFF with the
+  omega peak reproduced (peak bin within 3% of the reference), but the VMD
+  weights are quark-model-derived rather than PDG-derived and the tail just
+  above the omega (0.80-0.85 GeV) is 25-40% low.
 - `4e`/`4mu`: the direct/exchange interference now correctly dresses each
   diagram at the amplitude level (previously just wrong -- constant F=1
   applied uniformly) -- but the form factor itself is still the simple
-  single-rho-pole model, not arXiv:1511.04916's real double-virtual TFF.
+  single-rho-pole model (eta' too), not arXiv:1511.04916's real double-virtual TFF.
 - `2e2pi`/`2mu2pi` (both parents): the pion-pair-mass polynomial and
   dilepton form factor are exact ports of arXiv:2210.14925's coefficients,
   but its pi-pi Omnes function is a rho-Breit-Wigner stand-in (the real
@@ -482,9 +583,8 @@ model**:
   against this paper's own amplitude.
 
 **Truly missing -- not approximated, not attempted**:
-- The eta' omega resonance in `2mugamma`/`2mu2e` (confirmed absent;
-  eta''s phase space reaches well past where arXiv:1511.04916 says it
-  matters).
+- The eta' TFF for `4e`/`4mu` (still rho-pole; needs a complex
+  phase-continuous Pade/VMD amplitude).
 - Absolute branching ratios/normalization for all eight channels -- by
   design, every channel here is forced-exclusive shape-only.
 - Any quantitative check of *this code's own predicted rates* against

@@ -6,6 +6,7 @@
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeLLPiPi.h"
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoLLPiPiChPT.h"
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
 
 #include "TGenPhaseSpace.h"
 #include "TRandom.h"
@@ -73,6 +74,8 @@ PlutoDecayer::PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settin
     daughterIds_ = {13, -13};
   else if (mode_ == "2mugamma")
     daughterIds_ = {13, -13, 22};
+  else if (mode_ == "2egamma")
+    daughterIds_ = {11, -11, 22};
   else if (mode_ == "4e")
     daughterIds_ = {11, -11, 11, -11};
   else if (mode_ == "2mu2e")
@@ -110,11 +113,17 @@ PlutoDecayer::PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settin
                                                   rhoGamma_,
                                                   rhopMass_,
                                                   rhopGamma_);
-  if (model_ == "pointlike" && parentId_ == 221 && mode_ == "2mugamma")
-    etaPadeBound_ = gen::pluto::etaPadeSingleBound(pythia_->particleData.m0(221), daughterMasses_[0]);
-  else if (model_ == "pointlike" && parentId_ == 221 && mode_ == "2mu2e")
-    etaPadeBound_ = gen::pluto::etaPadeDoubleBound(
-        pythia_->particleData.m0(221), daughterMasses_[0], daughterMasses_[2]);
+  if (model_ == "pointlike" && (mode_ == "2mugamma" || mode_ == "2egamma")) {
+    tffBound_ = parentId_ == 221
+                    ? gen::pluto::etaPadeSingleBound(pythia_->particleData.m0(221), daughterMasses_[0])
+                    : gen::pluto::etaPrimeSingleBound(pythia_->particleData.m0(331), daughterMasses_[0]);
+  } else if (model_ == "pointlike" && mode_ == "2mu2e") {
+    tffBound_ = parentId_ == 221
+                    ? gen::pluto::etaPadeDoubleBound(
+                          pythia_->particleData.m0(221), daughterMasses_[0], daughterMasses_[2])
+                    : gen::pluto::etaPrimeDoubleBound(
+                          pythia_->particleData.m0(331), daughterMasses_[0], daughterMasses_[2]);
+  }
 }
 
 bool PlutoDecayer::decay(std::vector<int>& idProd,
@@ -168,13 +177,13 @@ bool PlutoDecayer::decay(std::vector<int>& idProd,
     lMinus.Boost(parent.BoostVector());
     lPlus.Boost(parent.BoostVector());
     result = {lMinus, lPlus};
-  } else if (mode_ == "2mugamma") {
-    // eta: actual data-fitted eta TFF (arXiv:1504.07742 Appendix A), not a
-    // generic resonance guess. eta': rho0-pole VMD (matches EvtGen), still
-    // missing the omega contribution documented as a known gap.
+  } else if (mode_ == "2mugamma" || mode_ == "2egamma") {
+    // eta: data-fitted eta TFF (arXiv:1504.07742 Appendix A). eta': the
+    // paper's two-regime model (arXiv:1511.04916 Sec. 2) -- eta'-specific
+    // Pade below 0.70 GeV, rho+omega+phi VMD above -- see PlutoEtaPrimeTFF.h.
     result = parentId_ == 221
-                 ? toVector(gen::pluto::singleDalitzEtaPade(parent, daughterMasses_[0], etaPadeBound_, flat))
-                 : toVector(gen::pluto::singleDalitz(parent, daughterMasses_[0], rhoMass_, rhoGamma_, flat));
+                 ? toVector(gen::pluto::singleDalitzEtaPade(parent, daughterMasses_[0], tffBound_, flat))
+                 : toVector(gen::pluto::singleDalitzEtaPrime(parent, daughterMasses_[0], tffBound_, flat));
   } else if (mode_ == "4e" || mode_ == "4mu") {
     // Amplitude-level form factor dressing of each diagram's two virtual
     // photons (direct and exchange evaluated at their own, different,
@@ -185,12 +194,13 @@ bool PlutoDecayer::decay(std::vector<int>& idProd,
   } else if (mode_ == "2mu2e") {
     // Factorized double-virtual form factor (arXiv:1511.04916 Eq. 8); no
     // exchange interference exists here, so this reweighting is unambiguous.
-    // eta uses the data-fitted eta TFF (PlutoEtaTFF.h); eta' the rho0-pole.
+    // eta uses the data-fitted eta TFF (PlutoEtaTFF.h); eta' the two-regime
+    // Pade + rho/omega/phi VMD TFF (PlutoEtaPrimeTFF.h).
     result = parentId_ == 221
                  ? toVector(gen::pluto::mixedPointlikeEtaPade(
-                       parent, daughterMasses_[0], daughterMasses_[2], etaPadeBound_, flat))
-                 : toVector(gen::pluto::mixedPointlikeResonant(
-                       parent, daughterMasses_[0], daughterMasses_[2], rhoMass_, rhoGamma_, flat));
+                       parent, daughterMasses_[0], daughterMasses_[2], tffBound_, flat))
+                 : toVector(gen::pluto::mixedPointlikeEtaPrime(
+                       parent, daughterMasses_[0], daughterMasses_[2], tffBound_, flat));
   } else {
     // eta/eta' 2e2pi/2mu2pi: mass-dependence from Zillinger/Kubis/Sanchez-Puertas,
     // arXiv:2210.14925 (P(s)*Omega(s)*Fbar(s_l), Omega approximated -- see

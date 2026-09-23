@@ -34,8 +34,9 @@ private:
   double rhoGamma_ = 0;
   double rhopMass_ = 0;
   double rhopGamma_ = 0;
-  double llpipiBound_ = 0;   // only set for mode=2e2pi/2mu2pi
-  double etaPadeBound_ = 0;  // only set for parent=221, mode=2mugamma/2mu2e
+  double llpipiBound_ = 0;  // only set for mode=2e2pi/2mu2pi
+  double tffBound_ = 0;     // rejection bound of the eta (Pade) or eta' (Pade+VMD) transition form
+                            // factor; only set for mode=2mugamma/2egamma/2mu2e
 };
 
 #endif

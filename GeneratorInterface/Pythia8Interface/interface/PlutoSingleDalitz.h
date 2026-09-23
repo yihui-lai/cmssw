@@ -1,6 +1,7 @@
 #ifndef GeneratorInterface_Pythia8Interface_PlutoSingleDalitz_h
 #define GeneratorInterface_Pythia8Interface_PlutoSingleDalitz_h
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
 #include "TLorentzVector.h"
 #include <array>
 #include <cmath>
@@ -119,6 +120,63 @@ namespace gen {
         return out;
       }
       throw std::runtime_error("Single Dalitz (eta Pade) rejection limit exhausted");
+    }
+
+    // Same kinematic/angular structure as singleDalitz/singleDalitzEtaPade
+    // for an arbitrary form factor: formFactorSq(q2) must return
+    // |F(q^2)/F(0)|^2 already divided by a rejection bound, i.e. in [0,1].
+    // (The two variants above predate this and carry their own copies of
+    // the same body; they're left untouched rather than migrated.)
+    template <class FormFactorSq, class Flat>
+    std::array<TLorentzVector, 3> singleDalitzGeneric(
+        const TLorentzVector& parent, double m, FormFactorSq formFactorSq, Flat flat) {
+      const double M = parent.M(), M2 = M * M;
+      if (!(m > 0 && M > 2 * m))
+        throw std::runtime_error("Single Dalitz masses are below threshold");
+      const double low = 4 * m * m / M2, high = 1.;
+      const double logRange = std::log(high / low), pi = std::acos(-1.);
+      for (unsigned attempt = 0; attempt < 1000000; ++attempt) {
+        const double x = low * std::exp(logRange * flat());
+        const double beta2 = 1 - 4 * m * m / (x * M2);
+        if (!(beta2 > 0))
+          continue;
+        const double beta = std::sqrt(beta2);
+        const double c = 2 * flat() - 1;
+        const double weight =
+            beta * std::pow(1 - x, 3) * (1 + c * c + (1 - beta2) * (1 - c * c)) / 2 * formFactorSq(x * M2);
+        if (!std::isfinite(weight) || weight < 0 || weight > 1)
+          throw std::runtime_error("Invalid single Dalitz rejection weight -- raise the form-factor bound's safety margin");
+        if (flat() >= weight)
+          continue;
+        const double q = M * std::sqrt(x);
+        const double k = M * (1 - x) / 2;
+        const double pl = q * beta / 2;
+        const double s = std::sqrt(1 - c * c), phi = 2 * pi * flat();
+        TLorentzVector gamma(0, 0, k, k);
+        TLorentzVector lMinus(pl * s * std::cos(phi), pl * s * std::sin(phi), pl * c, q / 2);
+        TLorentzVector lPlus(-pl * s * std::cos(phi), -pl * s * std::sin(phi), -pl * c, q / 2);
+        lMinus.Boost(0, 0, -k / (M - k));
+        lPlus.Boost(0, 0, -k / (M - k));
+        const double theta = std::acos(2 * flat() - 1), orientPhi = 2 * pi * flat();
+        std::array<TLorentzVector, 3> out = {{lMinus, lPlus, gamma}};
+        for (auto& p : out) {
+          p.RotateY(theta);
+          p.RotateZ(orientPhi);
+          p.Boost(parent.BoostVector());
+        }
+        return out;
+      }
+      throw std::runtime_error("Single Dalitz rejection limit exhausted");
+    }
+
+    // eta' (331) only: the two-regime Pade + rho/omega/phi VMD transition
+    // form factor of PlutoEtaPrimeTFF.h. formFactorBound comes from
+    // etaPrimeSingleBound, computed once by the caller.
+    template <class Flat>
+    std::array<TLorentzVector, 3> singleDalitzEtaPrime(
+        const TLorentzVector& parent, double m, double formFactorBound, Flat flat) {
+      return singleDalitzGeneric(
+          parent, m, [formFactorBound](double q2) { return etaPrimeFormFactorNormSq(q2) / formFactorBound; }, flat);
     }
   }  // namespace pluto
 }  // namespace gen
