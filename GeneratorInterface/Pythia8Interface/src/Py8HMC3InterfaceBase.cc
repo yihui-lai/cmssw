@@ -80,6 +80,8 @@ namespace gen {
     fMasterGen->settings.addMode("Pluto:parent", 221, true, true, 221, 331);
     fMasterGen->settings.addWord("Pluto:mode", "2mu2e");
     fMasterGen->settings.addWord("Pluto:model", "pointlike");
+    fMasterGen->settings.addMode("Pluto:A_id", 0, true, false, 0, 0);
+    fMasterGen->settings.addWord("Pluto:A_type", "darkphoton");
 
     //add settings for resonance decay filter
     fMasterGen->settings.addFlag("ResonanceDecayFilter:filter", false);

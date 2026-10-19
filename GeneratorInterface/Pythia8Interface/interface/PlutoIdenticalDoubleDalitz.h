@@ -138,25 +138,38 @@ namespace gen {
     // Equal mixture of direct and exchanged pairings followed by bounded
     // coherent rejection. |D-X|^2 <= 2(|D|^2+|X|^2) holds for *any* complex
     // D, X (expand |D-X|^2 = |D|^2+|X|^2-2Re(D X*) <= |D|^2+|X|^2+2|D||X| <=
-    // 2(|D|^2+|X|^2) by AM-GM) -- so this bound survives the rho0-pole
-    // dressing in Amplitudes/ffAmplitude unchanged; no new envelope
-    // derivation was needed to add it. rhoMass<=0 (the default) reproduces
-    // the original constant-form-factor behavior exactly. Identical-particle
-    // factorials affect rates, not this normalized exclusive shape.
+    // 2(|D|^2+|X|^2) by AM-GM). mixedPointlike's own rejection density is the
+    // *undressed* (F=1) matrix element, so the envelope must be built from
+    // the undressed scores at the same kinematics (score1 below), scaled by
+    // doubleBound = sup |F|^2 over the two invariant masses (an exact bound,
+    // not just an upper one, matters here: |D|^2_F <= doubleBound*|D|^2_1 and
+    // likewise for X, so |D-X|^2_F <= 2(|D|^2_F+|X|^2_F) <=
+    // 2*doubleBound*(|D|^2_1+|X|^2_1) = 4*doubleBound*q(x), giving
+    // weight = |D-X|^2_F / (2*doubleBound*(|D|^2_1+|X|^2_1)) <= 1). Using the
+    // *dressed* sum in the denominator instead (as a naive implementation
+    // would) silently cancels the form factor whenever F_D ~ F_X, which is
+    // generically true since direct/exchange virtualities are similar --
+    // doubleBound must come from the undressed proposal, not from scores().
+    // rhoMass<=0 and doubleBound=1 (the defaults) reproduce the original
+    // constant-form-factor behavior exactly, since score1==score then.
+    // Identical-particle factorials affect rates, not this normalized
+    // exclusive shape.
     template <class Flat>
     std::array<TLorentzVector, 4> identicalPointlike(const TLorentzVector& parent,
                                                       double m,
                                                       Flat flat,
                                                       double rhoMass = 0,
                                                       double rhoGamma = 0,
-                                                      bool useEtaPade = false) {
+                                                      bool useEtaPade = false,
+                                                      double doubleBound = 1.) {
       const TLorentzVector rest(0, 0, 0, parent.M());
       for (unsigned attempt = 0; attempt < 100000; ++attempt) {
         auto out = mixedPointlike(rest, m, m, flat);
         if (flat() < 0.5)
           std::swap(out[1], out[3]);
         const auto score = fourlepton::scores(out, m, rhoMass, rhoGamma, useEtaPade);
-        const double denominator = 2 * (score.direct + score.exchanged);
+        const auto score1 = fourlepton::scores(out, m, 0, 0, false);
+        const double denominator = 2 * doubleBound * (score1.direct + score1.exchanged);
         if (!(denominator > 0) || !std::isfinite(denominator))
           throw std::runtime_error("Invalid four-lepton proposal density");
         const double weight = score.coherent / denominator;

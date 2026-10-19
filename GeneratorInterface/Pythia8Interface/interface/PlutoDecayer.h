@@ -37,6 +37,15 @@ private:
   double llpipiBound_ = 0;  // only set for mode=2e2pi/2mu2pi
   double tffBound_ = 0;     // rejection bound of the eta (Pade) or eta' (Pade+VMD) transition form
                             // factor; only set for mode=2mugamma/2egamma/2mu2e
+  int aId_ = 0;             // PDG id of the BSM boson A (dark photon or ALP); only set for mode=2muA.
+                            // A must already be a registered Pythia particle (mass/width/lifetime/decay
+                            // table set by the fragment, e.g. via "<id>:all = ..."); this code only
+                            // produces the eta/eta' -> mu+ mu- A kinematics, A's own decay is handled
+                            // by Pythia's native decay machinery, not by PlutoDecayer.
+  std::string aType_;       // "darkphoton" or "alp"; only set for mode=2muA -- see PlutoBSMDalitz.h
+  double aBound_ = 0;       // rejection bound for the 2muA production weight; only set for mode=2muA
+  double fourBound_ = 1.;   // sup|F(s1)F(s2)|^2 over the two dilepton invariant masses; only set for
+                            // mode=4e/4mu -- see PlutoIdenticalDoubleDalitz.h's identicalPointlike
 };
 
 #endif

@@ -8,6 +8,8 @@
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoLLPiPiChPT.h"
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/PlutoBSMDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/PlutoBSMPiPiA.h"
 
 #include <random>
 
@@ -505,4 +507,104 @@ TEST_CASE("PlutoEtaPrimeTFF: normalization, slope, seam continuity, omega peak, 
   }
   // The omega/rho region carries a few percent of the eta' -> mu mu gamma rate.
   REQUIRE(inOmegaWindow > 0.02 * n);
+}
+
+TEST_CASE("PlutoBSMDalitz: eta/eta' -> mu mu A kinematics, dark photon and ALP, closure, bounds",
+          "[PlutoDecayer]") {
+  const double mEta = 0.547862, mEtaP = 0.95778, mMu = 0.105658;
+  std::mt19937_64 rng(13579);
+  auto flat = [&]() { return std::generate_canonical<double, 53>(rng); };
+
+  // The requested kinematic windows (see the user-facing discussion this implements):
+  // eta  -> mu mu A, A -> ee : m_A in ~1-337 MeV
+  // eta' -> mu mu A, A -> ee : m_A in ~1-746 MeV
+  for (double mA : {0.01, 0.1, 0.2, 0.33}) {
+    const TLorentzVector parent(0, 0, 0, mEta);
+    const double boundDP = gen::pluto::darkPhotonSingleBound(mEta, mMu, mA, false);
+    const double boundALP = gen::pluto::alpSingleBound(mEta, mMu, mA);
+    for (int i = 0; i < 300; ++i) {
+      auto dp = gen::pluto::singleDalitzDarkPhoton(parent, mMu, mA, false, boundDP, flat);
+      auto alp = gen::pluto::singleDalitzALP(parent, mMu, mA, boundALP, flat);
+      for (const auto* out : {&dp, &alp}) {
+        TLorentzVector sum = (*out)[0] + (*out)[1] + (*out)[2];
+        REQUIRE((sum - parent).Vect().Mag() + std::abs(sum.E() - parent.E()) < 1e-9);
+        REQUIRE(std::abs((*out)[0].M() - mMu) < 1e-8);
+        REQUIRE(std::abs((*out)[1].M() - mMu) < 1e-8);
+        REQUIRE(std::abs((*out)[2].M() - mA) < 1e-8);
+      }
+    }
+  }
+  for (double mA : {0.01, 0.3, 0.6, 0.74}) {
+    const TLorentzVector parent(0, 0, 0, mEtaP);
+    const double boundDP = gen::pluto::darkPhotonSingleBound(mEtaP, mMu, mA, true);
+    const double boundALP = gen::pluto::alpSingleBound(mEtaP, mMu, mA);
+    for (int i = 0; i < 300; ++i) {
+      auto dp = gen::pluto::singleDalitzDarkPhoton(parent, mMu, mA, true, boundDP, flat);
+      auto alp = gen::pluto::singleDalitzALP(parent, mMu, mA, boundALP, flat);
+      for (const auto* out : {&dp, &alp}) {
+        TLorentzVector sum = (*out)[0] + (*out)[1] + (*out)[2];
+        REQUIRE((sum - parent).Vect().Mag() + std::abs(sum.E() - parent.E()) < 1e-9);
+        REQUIRE(std::abs((*out)[2].M() - mA) < 1e-8);
+      }
+    }
+  }
+
+  // Massless-A limit: the new kinematics should reduce to the existing, already-validated
+  // singleDalitzEtaPrime shape as m_A -> 0 (mean dilepton mass agrees to a few percent).
+  {
+    const TLorentzVector parent(0, 0, 0, mEtaP);
+    const double boundOld = gen::pluto::etaPrimeSingleBound(mEtaP, mMu);
+    const double mA = 0.0005;
+    const double boundNew = gen::pluto::darkPhotonSingleBound(mEtaP, mMu, mA, true);
+    double sOld = 0, sNew = 0;
+    const int n = 20000;
+    for (int i = 0; i < n; ++i) {
+      auto o1 = gen::pluto::singleDalitzEtaPrime(parent, mMu, boundOld, flat);
+      sOld += (o1[0] + o1[1]).M();
+      auto o2 = gen::pluto::singleDalitzDarkPhoton(parent, mMu, mA, true, boundNew, flat);
+      sNew += (o2[0] + o2[1]).M();
+    }
+    REQUIRE(std::abs(sOld / n - sNew / n) < 0.01 * sOld / n);
+  }
+}
+
+TEST_CASE("PlutoBSMPiPiA: eta/eta' -> pi pi A kinematics, dark photon and ALP, closure, bounds",
+          "[PlutoDecayer]") {
+  const double mEta = 0.547862, mEtaP = 0.95778, mPi = 0.13957, mMu = 0.105658;
+  const double rhoM = 0.7754, rhoG = 0.1462, rhopM = 1.465, rhopG = 0.400;
+  std::mt19937_64 rng(24680);
+  auto flat = [&]() { return std::generate_canonical<double, 53>(rng); };
+
+  // eta -> pi pi A, A -> mu mu : m_A ~ 211-269 MeV
+  for (double mA : {0.212, 0.23, 0.25, 0.268}) {
+    const TLorentzVector parent(0, 0, 0, mEta);
+    const double boundDP = gen::pluto::darkPhotonPiPiABound(mEta, mPi, mA, mMu, false, rhoM, rhoG, rhopM, rhopG);
+    const double boundALP = gen::pluto::alpPiPiABound(mEta, mPi, mA);
+    for (int i = 0; i < 300; ++i) {
+      auto dp = gen::pluto::piPiADarkPhoton(parent, mPi, mA, mMu, false, rhoM, rhoG, rhopM, rhopG, boundDP, flat);
+      auto alp = gen::pluto::piPiAALP(parent, mPi, mA, boundALP, flat);
+      for (const auto* out : {&dp, &alp}) {
+        TLorentzVector sum = (*out)[0] + (*out)[1] + (*out)[2];
+        REQUIRE((sum - parent).Vect().Mag() + std::abs(sum.E() - parent.E()) < 1e-9);
+        REQUIRE(std::abs((*out)[0].M() - mPi) < 1e-7);
+        REQUIRE(std::abs((*out)[1].M() - mPi) < 1e-7);
+        REQUIRE(std::abs((*out)[2].M() - mA) < 1e-7);
+      }
+    }
+  }
+  // eta' -> pi pi A, A -> mu mu : m_A ~ 211-679 MeV
+  for (double mA : {0.212, 0.3, 0.45, 0.6, 0.678}) {
+    const TLorentzVector parent(0, 0, 0, mEtaP);
+    const double boundDP = gen::pluto::darkPhotonPiPiABound(mEtaP, mPi, mA, mMu, true, rhoM, rhoG, rhopM, rhopG);
+    const double boundALP = gen::pluto::alpPiPiABound(mEtaP, mPi, mA);
+    for (int i = 0; i < 300; ++i) {
+      auto dp = gen::pluto::piPiADarkPhoton(parent, mPi, mA, mMu, true, rhoM, rhoG, rhopM, rhopG, boundDP, flat);
+      auto alp = gen::pluto::piPiAALP(parent, mPi, mA, boundALP, flat);
+      for (const auto* out : {&dp, &alp}) {
+        TLorentzVector sum = (*out)[0] + (*out)[1] + (*out)[2];
+        REQUIRE((sum - parent).Vect().Mag() + std::abs(sum.E() - parent.E()) < 1e-9);
+        REQUIRE(std::abs((*out)[2].M() - mA) < 1e-7);
+      }
+    }
+  }
 }

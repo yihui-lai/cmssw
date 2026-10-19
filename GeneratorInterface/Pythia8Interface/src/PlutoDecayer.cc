@@ -7,6 +7,8 @@
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoLLPiPiChPT.h"
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
 #include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/PlutoBSMDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/PlutoBSMPiPiA.h"
 
 #include "TGenPhaseSpace.h"
 #include "TRandom.h"
@@ -86,7 +88,33 @@ PlutoDecayer::PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settin
     daughterIds_ = {11, -11, 211, -211};
   else if (mode_ == "2mu2pi")
     daughterIds_ = {13, -13, 211, -211};
-  else
+  else if (mode_ == "2muA") {
+    // BSM: eta/eta' -> mu+ mu- A (A = a dark photon or ALP, decaying separately to e+ e-
+    // via Pythia's own decay table) -- see PlutoBSMDalitz.h for the production amplitude.
+    aId_ = settingsPtr->mode("Pluto:A_id");
+    aType_ = settingsPtr->word("Pluto:A_type");
+    if (aId_ == 0)
+      throw std::runtime_error(
+          "Pluto:mode = 2muA requires Pluto:A_id to be set to A's PDG id; A must already be "
+          "registered as its own Pythia particle (mass/width/lifetime/decay table), e.g. via "
+          "\"<id>:all = ...\" in the fragment, before Pluto:filter is processed");
+    if (aType_ != "darkphoton" && aType_ != "alp")
+      throw std::runtime_error("Pluto:A_type must be \"darkphoton\" or \"alp\", got \"" + aType_ + "\"");
+    daughterIds_ = {13, -13, aId_};
+  } else if (mode_ == "2piA") {
+    // BSM: eta/eta' -> pi+ pi- A (A decays separately to mu+ mu-, as fixed by this
+    // channel's design -- see PlutoBSMPiPiA.h for the production amplitude).
+    aId_ = settingsPtr->mode("Pluto:A_id");
+    aType_ = settingsPtr->word("Pluto:A_type");
+    if (aId_ == 0)
+      throw std::runtime_error(
+          "Pluto:mode = 2piA requires Pluto:A_id to be set to A's PDG id; A must already be "
+          "registered as its own Pythia particle (mass/width/lifetime/decay table), e.g. via "
+          "\"<id>:all = ...\" in the fragment, before Pluto:filter is processed");
+    if (aType_ != "darkphoton" && aType_ != "alp")
+      throw std::runtime_error("Pluto:A_type must be \"darkphoton\" or \"alp\", got \"" + aType_ + "\"");
+    daughterIds_ = {211, -211, aId_};
+  } else
     throw std::runtime_error("Unknown Pluto:mode \"" + mode_ + "\"");
   if (model_ != "pointlike" && model_ != "phaseSpace")
     throw std::runtime_error("Unknown Pluto:model \"" + model_ + "\" (use pointlike or phaseSpace)");
@@ -123,6 +151,43 @@ PlutoDecayer::PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settin
                           pythia_->particleData.m0(221), daughterMasses_[0], daughterMasses_[2])
                     : gen::pluto::etaPrimeDoubleBound(
                           pythia_->particleData.m0(331), daughterMasses_[0], daughterMasses_[2]);
+  } else if (model_ == "pointlike" && mode_ == "2muA") {
+    if (daughterMasses_[2] <= 0)
+      throw std::runtime_error(
+          "Pluto:A_id's registered Pythia mass is zero -- set A's mass via \"<id>:all = ...\" in "
+          "the fragment before Pluto:filter is processed");
+    aBound_ = aType_ == "darkphoton"
+                  ? gen::pluto::darkPhotonSingleBound(
+                        pythia_->particleData.m0(parentId_), daughterMasses_[0], daughterMasses_[2], parentId_ == 331)
+                  : gen::pluto::alpSingleBound(
+                        pythia_->particleData.m0(parentId_), daughterMasses_[0], daughterMasses_[2]);
+  } else if (model_ == "pointlike" && (mode_ == "4e" || mode_ == "4mu")) {
+    // Exact bound on |F(s1)|^2|F(s2)|^2 over the accessible dilepton masses --
+    // see PlutoIdenticalDoubleDalitz.h's identicalPointlike for why this must
+    // be an upper bound on the *undressed* proposal's blow-up, not a reweight
+    // of the dressed scores. eta: same Pade double bound as the 2mu2e
+    // sampler. eta': the single rho0-pole BW used here (not the two-regime
+    // Pade+VMD model) satisfies |F|^2 <= 1 exactly for any real q2, so 1 is
+    // already the exact supremum -- no grid search needed.
+    fourBound_ = parentId_ == 221
+                     ? gen::pluto::etaPadeDoubleBound(pythia_->particleData.m0(221), daughterMasses_[0], daughterMasses_[0])
+                     : 1.;
+  } else if (model_ == "pointlike" && mode_ == "2piA") {
+    if (daughterMasses_[2] <= 0)
+      throw std::runtime_error(
+          "Pluto:A_id's registered Pythia mass is zero -- set A's mass via \"<id>:all = ...\" in "
+          "the fragment before Pluto:filter is processed");
+    aBound_ = aType_ == "darkphoton"
+                  ? gen::pluto::darkPhotonPiPiABound(pythia_->particleData.m0(parentId_),
+                                                      daughterMasses_[0],
+                                                      daughterMasses_[2],
+                                                      pythia_->particleData.m0(13),
+                                                      parentId_ == 331,
+                                                      rhoMass_,
+                                                      rhoGamma_,
+                                                      rhopMass_,
+                                                      rhopGamma_)
+                  : gen::pluto::alpPiPiABound(pythia_->particleData.m0(parentId_), daughterMasses_[0], daughterMasses_[2]);
   }
 }
 
@@ -190,7 +255,7 @@ bool PlutoDecayer::decay(std::vector<int>& idProd,
     // invariant masses) before they interfere -- see PlutoIdenticalDoubleDalitz.h.
     // eta uses the data-fitted eta TFF; eta' uses the rho0-pole model.
     result = toVector(gen::pluto::identicalPointlike(
-        parent, daughterMasses_[0], flat, rhoMass_, rhoGamma_, parentId_ == 221));
+        parent, daughterMasses_[0], flat, rhoMass_, rhoGamma_, parentId_ == 221, fourBound_));
   } else if (mode_ == "2mu2e") {
     // Factorized double-virtual form factor (arXiv:1511.04916 Eq. 8); no
     // exchange interference exists here, so this reweighting is unambiguous.
@@ -201,6 +266,30 @@ bool PlutoDecayer::decay(std::vector<int>& idProd,
                        parent, daughterMasses_[0], daughterMasses_[2], tffBound_, flat))
                  : toVector(gen::pluto::mixedPointlikeEtaPrime(
                        parent, daughterMasses_[0], daughterMasses_[2], tffBound_, flat));
+  } else if (mode_ == "2muA") {
+    // BSM: eta/eta' -> mu+ mu- A. A's own decay to e+ e- is not done here --
+    // it is handled afterward by Pythia's native decay machinery, using
+    // whatever decay table the fragment registered for Pluto:A_id.
+    result = aType_ == "darkphoton"
+                 ? toVector(gen::pluto::singleDalitzDarkPhoton(
+                       parent, daughterMasses_[0], daughterMasses_[2], parentId_ == 331, aBound_, flat))
+                 : toVector(gen::pluto::singleDalitzALP(parent, daughterMasses_[0], daughterMasses_[2], aBound_, flat));
+  } else if (mode_ == "2piA") {
+    // BSM: eta/eta' -> pi+ pi- A. A's own decay to mu+ mu- is not done here
+    // -- handled afterward by Pythia's native decay machinery.
+    result = aType_ == "darkphoton"
+                 ? toVector(gen::pluto::piPiADarkPhoton(parent,
+                                                         daughterMasses_[0],
+                                                         daughterMasses_[2],
+                                                         pythia_->particleData.m0(13),
+                                                         parentId_ == 331,
+                                                         rhoMass_,
+                                                         rhoGamma_,
+                                                         rhopMass_,
+                                                         rhopGamma_,
+                                                         aBound_,
+                                                         flat))
+                 : toVector(gen::pluto::piPiAALP(parent, daughterMasses_[0], daughterMasses_[2], aBound_, flat));
   } else {
     // eta/eta' 2e2pi/2mu2pi: mass-dependence from Zillinger/Kubis/Sanchez-Puertas,
     // arXiv:2210.14925 (P(s)*Omega(s)*Fbar(s_l), Omega approximated -- see
