@@ -1,5 +1,5 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoEtaPrimeTFF_h
-#define GeneratorInterface_Pythia8Interface_PlutoEtaPrimeTFF_h
+#ifndef GeneratorInterface_Pythia8Interface_EtaPrimeTFF_h
+#define GeneratorInterface_Pythia8Interface_EtaPrimeTFF_h
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -21,7 +21,7 @@ namespace gen {
     //     q^2 = 1/r1 = 0.6935 GeV^2 (sqrt = 0.833 GeV, inside the paper's
     //     quoted (0.83,0.86) GeV) -- inside eta''s accessible range up to
     //     M_eta' = 0.958 GeV, which is exactly why a single Pade formula (as
-    //     used for eta in PlutoEtaTFF.h, whose pole is above M_eta) cannot
+    //     used for eta in EtaTFF.h, whose pole is above M_eta) cannot
     //     cover eta'.
     //   sqrt(q^2) >  0.70 GeV : coherent rho + omega + phi vector-meson
     //     dominance (Landsberg's finite-width VMD, 1511.04916 Eq. (VMD)),
@@ -56,7 +56,7 @@ namespace gen {
     //    Cross-checked, not merely asserted: the same construction for eta
     //    (eta = cos(phi) eta_q - sin(phi) eta_s) predicts a slope
     //    b = 1.87 GeV^-2 against the data-fitted Pade slope 1.92 GeV^-2
-    //    (PlutoEtaTFF.h), and for eta' b = 1.48 vs. the Table IV Pade's 1.42
+    //    (EtaTFF.h), and for eta' b = 1.48 vs. the Table IV Pade's 1.42
     //    -- ~2% and ~4% agreement. That slope test constrains the
     //    (rho+omega) : phi split and the mixing angle, but NOT the rho : omega
     //    split (9:1 here, the (e_u-e_d)^2 : (e_u+e_d)^2 isospin ratio), since

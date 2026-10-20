@@ -1,20 +1,20 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoBSMDalitz_h
-#define GeneratorInterface_Pythia8Interface_PlutoBSMDalitz_h
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
+#ifndef GeneratorInterface_Pythia8Interface_EtaBSMDalitz_h
+#define GeneratorInterface_Pythia8Interface_EtaBSMDalitz_h
+#include "GeneratorInterface/Pythia8Interface/interface/EtaTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPrimeTFF.h"
 #include "TLorentzVector.h"
 #include <array>
 #include <cmath>
 #include <stdexcept>
 
-// BSM generalization of PlutoSingleDalitz.h's P -> gamma l+ l- Dalitz decay
+// BSM generalization of EtaSingleDalitz.h's P -> gamma l+ l- Dalitz decay
 // to P -> A l+ l-, where A is a new, on-shell, non-zero-mass neutral boson
 // (a dark photon or an ALP) instead of a real photon. A is inserted into
 // the Pythia event record as an explicit daughter (PDG id and mass/width/
 // lifetime set by the caller's fragment via Pythia's own particle-data
 // settings, e.g. "<id>:all = ..."); its own decay to a *different* lepton
 // flavor is handled afterward by Pythia's native decay machinery, not by
-// this code -- PlutoDecayer only needs to produce correct P -> A l+ l-
+// this code -- EtaDecayer only needs to produce correct P -> A l+ l-
 // kinematics and hand A off with the right PDG id.
 //
 // Physics content and its limits (read before trusting this past leading
@@ -65,7 +65,7 @@ namespace gen {
     // between threshold and the P -> A + (l+l-) edge, builds the l+l- pair
     // in its own rest frame (angle c = cos(theta) relative to the boost
     // axis), boosts by the exact two-body velocity -p/E_ll (generalizing
-    // PlutoSingleDalitz.h's massless-photon -k/(M-k)), and places A with
+    // EtaSingleDalitz.h's massless-photon -k/(M-k)), and places A with
     // the correct (p, E_A). weight(x, c) must return the physics weight
     // already divided by a safe upper bound, i.e. in [0,1].
     template <class WeightXC, class Flat>
@@ -119,7 +119,7 @@ namespace gen {
 
     // Dark-photon-hypothesis weight: the same Kroll-Wada-type beta(x) *
     // (1+c^2+(1-beta^2)(1-c^2))/2 angular shape and transition-form-factor
-    // dressing already used for the real-photon Dalitz decay (PlutoSingleDalitz.h),
+    // dressing already used for the real-photon Dalitz decay (EtaSingleDalitz.h),
     // evaluated at q2 = x*M^2 -- see the file header for the leading-order
     // caveat. isEtaPrime selects the eta (Pade) vs eta' (Pade+VMD) TFF.
     //
@@ -154,7 +154,7 @@ namespace gen {
         const double beta2 = 1 - 4 * mLep * mLep / (x * M2);
         const double beta = std::sqrt(std::max(beta2, 0.));
         const double ang = (1 + c * c + (1 - beta2) * (1 - c * c)) / 2;
-        // (1-x)^3 carried over unchanged from the massless-photon formula (PlutoSingleDalitz.h) --
+        // (1-x)^3 carried over unchanged from the massless-photon formula (EtaSingleDalitz.h) --
         // this is the inherited-shape approximation documented at the top of this file.
         return beta * std::pow(1 - x, 3) * ang * darkPhotonFormFactorNormSq(x * M2, isEtaPrime) / formFactorBound;
       };

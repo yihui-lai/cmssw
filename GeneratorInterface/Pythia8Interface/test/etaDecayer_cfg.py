@@ -1,6 +1,6 @@
 """Forced finite-mass, constant-form-factor eta/eta-prime decay smoke test.
 
-Exercises PlutoDecayer (GeneratorInterface/Pythia8Interface/interface/PlutoDecayer.h),
+Exercises EtaDecayer (GeneratorInterface/Pythia8Interface/interface/EtaDecayer.h),
 registered with Pythia8 through the classic DecayHandler/setDecayPtr mechanism
 (works against whatever Pythia8 is pinned for this CMSSW release -- no
 Init:plugins, no external Pluto library).

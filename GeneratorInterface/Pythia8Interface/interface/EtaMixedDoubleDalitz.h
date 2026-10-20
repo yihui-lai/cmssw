@@ -1,7 +1,7 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoMixedDoubleDalitz_h
-#define GeneratorInterface_Pythia8Interface_PlutoMixedDoubleDalitz_h
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
+#ifndef GeneratorInterface_Pythia8Interface_EtaMixedDoubleDalitz_h
+#define GeneratorInterface_Pythia8Interface_EtaMixedDoubleDalitz_h
+#include "GeneratorInterface/Pythia8Interface/interface/EtaTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPrimeTFF.h"
 #include "TLorentzVector.h"
 #include <algorithm>
 #include <array>
@@ -72,7 +72,7 @@ namespace gen {
 
     // Same density as mixedPointlike, but with the constant F=1 replaced by
     // a factorized double-virtual form factor F(s1,s2) = Frho(s1)*Frho(s2),
-    // Frho the single rho0-pole VMD factor also used in PlutoSingleDalitz.h.
+    // Frho the single rho0-pole VMD factor also used in EtaSingleDalitz.h.
     // Escribano & Gonzalez-Solis, arXiv:1511.04916, Eq. (8) ("standard
     // factorisation ansatz"), motivate this product form for the
     // double-virtual TFF from single-virtual data; that paper's Table 4/6
@@ -83,7 +83,7 @@ namespace gen {
     // valid for the non-identical-lepton (2mu2e) channel: applying the same
     // factorized reweighting to the identical-lepton case would need to be
     // done separately for the direct and exchange kinematics before they
-    // interfere, which is not implemented here -- see PlutoIdenticalDoubleDalitz.h.
+    // interfere, which is not implemented here -- see EtaIdenticalDoubleDalitz.h.
     template <class Flat>
     std::array<TLorentzVector, 4> mixedPointlikeResonant(
         const TLorentzVector& parent, double m1, double m2, double rhoMass, double rhoGamma, Flat flat) {
@@ -139,7 +139,7 @@ namespace gen {
 
     // eta (221) only: same as mixedPointlikeResonant, but each pair's
     // rho-pole VMD factor is replaced by the actual data-fitted eta TFF
-    // (PlutoEtaTFF.h, arXiv:1504.07742), applied as a factorized product
+    // (EtaTFF.h, arXiv:1504.07742), applied as a factorized product
     // over the two (generally different) dilepton invariant masses --
     // arXiv:1511.04916 Eq. 8's "standard factorisation ansatz", the same
     // pattern already used for the rho-pole version, just with a better
@@ -249,7 +249,7 @@ namespace gen {
     // eta' (331) only: factorized double-virtual form factor
     // |F(s1)|^2 |F(s2)|^2 (arXiv:1511.04916 Eq. 8's factorisation ansatz)
     // built from the two-regime Pade + rho/omega/phi VMD single-virtual
-    // form factor of PlutoEtaPrimeTFF.h. weightBound comes from
+    // form factor of EtaPrimeTFF.h. weightBound comes from
     // etaPrimeDoubleBound, computed once by the caller.
     template <class Flat>
     std::array<TLorentzVector, 4> mixedPointlikeEtaPrime(

@@ -1,8 +1,8 @@
-// Generates the MC side of the PlutoDecayer-vs-paper validation.
+// Generates the MC side of the EtaDecayer-vs-paper validation.
 //
 // Draws events straight from the samplers in
 // GeneratorInterface/Pythia8Interface/interface/ -- i.e. whatever physics is
-// CURRENTLY wired into PlutoDecayer -- and histograms the same observables
+// CURRENTLY wired into EtaDecayer -- and histograms the same observables
 // as Figs. 4/8/9/10/11 of arXiv:1511.04916 and Fig. 7 of arXiv:0705.0954.
 // No CMSSW build or cmsRun needed (header-only + ROOT's TLorentzVector).
 //
@@ -13,11 +13,11 @@
 //   eta/eta' 2e2pi/2mu2pi      : llpipiChPT (arXiv:2210.14925)
 //
 // Usage: ./compare_papers [output.csv]   (default: pluto_mc.csv)
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoMixedDoubleDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoIdenticalDoubleDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoLLPiPiChPT.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoSingleDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaMixedDoubleDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaIdenticalDoubleDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaLLPiPiChPT.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaSingleDalitz.h"
 
 #include <array>
 #include <cstdio>

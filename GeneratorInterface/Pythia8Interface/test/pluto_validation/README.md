@@ -1,6 +1,6 @@
-# PlutoDecayer shape validation against theory papers
+# EtaDecayer shape validation against theory papers
 
-Checks that the decay-kinematics models in `PlutoDecayer` reproduce the
+Checks that the decay-kinematics models in `EtaDecayer` reproduce the
 published theoretical spectra of eta/eta' -> l+l-gamma, l+l-l+l-, l+l-pi+pi-.
 No CMSSW build, `cmsRun` or Pythia is needed: `compare_papers.cc` calls the
 header-only samplers in `GeneratorInterface/Pythia8Interface/interface/`
@@ -23,8 +23,8 @@ Outputs (`output/`, not tracked by git):
 | `paper_compare_0705.png` | 4 panels vs. arXiv:0705.0954 Fig. 7: eta/eta' -> `2e2pi`/`2mu2pi` |
 | `comparison_data.json`, `pluto_mc.csv` | reference and MC curves behind the plots |
 
-Line = reference curve digitized from the paper; dots = `PlutoDecayer` MC.
-`PlutoDecayer` predicts **shapes only** (forced exclusive decays, no branching
+Line = reference curve digitized from the paper; dots = `EtaDecayer` MC.
+`EtaDecayer` predicts **shapes only** (forced exclusive decays, no branching
 fractions), so each MC histogram is multiplied by one constant to match the
 reference area; the constants are printed by `make_comparison_data.py`.
 Compare shapes, not heights.
@@ -43,11 +43,11 @@ Compare shapes, not heights.
 
 - eta channels and eta' `2mugamma`/`2mu2e`: shapes agree with the papers,
   including the omega peak (~0.78 GeV) and the rho/omega bump in eta'
-  `2mu2e` (implemented in `interface/PlutoEtaPrimeTFF.h`).
+  `2mu2e` (implemented in `interface/EtaPrimeTFF.h`).
 - eta' `4e`/`4mu` use a simpler rho-pole model; the small omega bump in
   the paper's eta' `4e` curve is not reproduced.
 - Just above the omega peak (0.80-0.85 GeV) the eta' `2mugamma` MC is 25-40%
-  below the reference (known residual, see `doc/PlutoDecayer.md`).
+  below the reference (known residual, see `doc/EtaDecayer.md`).
 - The steep, nearly vertical strokes at the left edge of some reference
   curves are the real threshold rise digitized at finite resolution.
 - Peak-position ratios are a poor statistic for the electron channels, which

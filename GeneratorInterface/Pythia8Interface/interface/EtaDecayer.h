@@ -1,5 +1,5 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoDecayer_h
-#define GeneratorInterface_Pythia8Interface_PlutoDecayer_h
+#ifndef GeneratorInterface_Pythia8Interface_EtaDecayer_h
+#define GeneratorInterface_Pythia8Interface_EtaDecayer_h
 
 #include <string>
 #include <vector>
@@ -9,12 +9,12 @@
 // with Pythia8 through the classic DecayHandler/setDecayPtr mechanism (no
 // Pythia version dependency, unlike the newer Init:plugins loader). The
 // decay densities are constant-form-factor models from Petri,
-// arXiv:1010.2378; see GeneratorInterface/Pythia8Interface/doc/PlutoDecayer.md
+// arXiv:1010.2378; see GeneratorInterface/Pythia8Interface/doc/EtaDecayer.md
 // for the physics assumptions. This does not depend on the external Pluto
 // library: only ROOT's TLorentzVector is used.
-class PlutoDecayer : public Pythia8::DecayHandler {
+class EtaDecayer : public Pythia8::DecayHandler {
 public:
-  PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settingsPtr);
+  EtaDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settingsPtr);
 
   bool decay(std::vector<int>& idProd,
              std::vector<double>& mProd,
@@ -41,11 +41,11 @@ private:
                             // A must already be a registered Pythia particle (mass/width/lifetime/decay
                             // table set by the fragment, e.g. via "<id>:all = ..."); this code only
                             // produces the eta/eta' -> mu+ mu- A kinematics, A's own decay is handled
-                            // by Pythia's native decay machinery, not by PlutoDecayer.
-  std::string aType_;       // "darkphoton" or "alp"; only set for mode=2muA -- see PlutoBSMDalitz.h
+                            // by Pythia's native decay machinery, not by EtaDecayer.
+  std::string aType_;       // "darkphoton" or "alp"; only set for mode=2muA -- see EtaBSMDalitz.h
   double aBound_ = 0;       // rejection bound for the 2muA production weight; only set for mode=2muA
   double fourBound_ = 1.;   // sup|F(s1)F(s2)|^2 over the two dilepton invariant masses; only set for
-                            // mode=4e/4mu -- see PlutoIdenticalDoubleDalitz.h's identicalPointlike
+                            // mode=4e/4mu -- see EtaIdenticalDoubleDalitz.h's identicalPointlike
 };
 
 #endif

@@ -39,7 +39,7 @@ using namespace Pythia8;
 #include "GeneratorInterface/Pythia8Interface/interface/BiasedTauDecayer.h"
 
 //pluto eta/eta' -> 4-lepton(+2pi) decayer
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoDecayer.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaDecayer.h"
 
 //decay filter hook
 #include "GeneratorInterface/Pythia8Interface/interface/ResonanceDecayFilterHook.h"
@@ -145,7 +145,7 @@ private:
   std::shared_ptr<BiasedTauDecayer> fBiasedTauDecayer;
 
   // pluto eta/eta' -> 4-lepton(+2pi) decayer
-  std::shared_ptr<PlutoDecayer> fPlutoDecayer;
+  std::shared_ptr<EtaDecayer> fEtaDecayer;
 
   //resonance decay filter hook
   std::shared_ptr<ResonanceDecayFilterHook> fResonanceDecayFilterHook;
@@ -457,13 +457,13 @@ bool Pythia8HepMC3Hadronizer::initializeForInternalPartons() {
     fMasterGen->setDecayPtr(fBiasedTauDecayer, handledParticles);
   }
 
-  bool plutoDecayer = fMasterGen->settings.flag("Pluto:filter");
-  if (plutoDecayer) {
-    if (!fPlutoDecayer.get())
-      fPlutoDecayer.reset(new PlutoDecayer(fMasterGen.get(), &(fMasterGen->settings)));
+  bool etaDecayer = fMasterGen->settings.flag("Pluto:filter");
+  if (etaDecayer) {
+    if (!fEtaDecayer.get())
+      fEtaDecayer.reset(new EtaDecayer(fMasterGen.get(), &(fMasterGen->settings)));
     std::vector<int> handledParticles;
     handledParticles.push_back(fMasterGen->settings.mode("Pluto:parent"));
-    fMasterGen->setDecayPtr(fPlutoDecayer, handledParticles);
+    fMasterGen->setDecayPtr(fEtaDecayer, handledParticles);
   }
 
   bool resonanceDecayFilter = fMasterGen->settings.flag("ResonanceDecayFilter:filter");
@@ -625,13 +625,13 @@ bool Pythia8HepMC3Hadronizer::initializeForExternalPartons() {
     fMasterGen->setDecayPtr(fBiasedTauDecayer, handledParticles);
   }
 
-  bool plutoDecayer = fMasterGen->settings.flag("Pluto:filter");
-  if (plutoDecayer) {
-    if (!fPlutoDecayer.get())
-      fPlutoDecayer.reset(new PlutoDecayer(fMasterGen.get(), &(fMasterGen->settings)));
+  bool etaDecayer = fMasterGen->settings.flag("Pluto:filter");
+  if (etaDecayer) {
+    if (!fEtaDecayer.get())
+      fEtaDecayer.reset(new EtaDecayer(fMasterGen.get(), &(fMasterGen->settings)));
     std::vector<int> handledParticles;
     handledParticles.push_back(fMasterGen->settings.mode("Pluto:parent"));
-    fMasterGen->setDecayPtr(fPlutoDecayer, handledParticles);
+    fMasterGen->setDecayPtr(fEtaDecayer, handledParticles);
   }
 
   bool resonanceDecayFilter = fMasterGen->settings.flag("ResonanceDecayFilter:filter");

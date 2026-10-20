@@ -1,6 +1,6 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoIdenticalDoubleDalitz_h
-#define GeneratorInterface_Pythia8Interface_PlutoIdenticalDoubleDalitz_h
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoMixedDoubleDalitz.h"
+#ifndef GeneratorInterface_Pythia8Interface_EtaIdenticalDoubleDalitz_h
+#define GeneratorInterface_Pythia8Interface_EtaIdenticalDoubleDalitz_h
+#include "GeneratorInterface/Pythia8Interface/interface/EtaMixedDoubleDalitz.h"
 #include <complex>
 
 namespace gen {
@@ -48,7 +48,7 @@ namespace gen {
       // |ffAmplitude(q2)|^2 == that same weight. rhoMass<=0 disables it
       // (F=1), preserving the exact original constant-form-factor behavior
       // for existing callers/tests. useEtaPade=true (eta/221 only) instead
-      // uses the data-fitted eta TFF (PlutoEtaTFF.h) -- real-valued, since
+      // uses the data-fitted eta TFF (EtaTFF.h) -- real-valued, since
       // eta never reaches the resonance region where an imaginary part
       // would appear.
       inline Complex ffAmplitude(double q2, double rhoMass, double rhoGamma, bool useEtaPade = false) {

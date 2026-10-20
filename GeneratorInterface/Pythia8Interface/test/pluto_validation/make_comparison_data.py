@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Merge the reference curves in csv/ with PlutoDecayer's MC histograms.
+"""Merge the reference curves in csv/ with EtaDecayer's MC histograms.
 
 Reads  : csv/*.csv        (curves digitized from the papers' figures)
          <mc.csv>         (written by ./compare_papers)
 Writes : <out.json>       {"paper": {series: [[x,y],..]}, "mc": {series: [[x,y],..]}}
 
 Each MC histogram is multiplied by ONE constant so its trapezoidal area
-equals the reference curve's area: PlutoDecayer predicts shapes only (forced
+equals the reference curve's area: EtaDecayer predicts shapes only (forced
 exclusive decays, no branching fractions), so area-matching is the only
 meaningful way to overlay them. The scale factors are printed.
 

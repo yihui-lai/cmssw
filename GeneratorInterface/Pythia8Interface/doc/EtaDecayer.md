@@ -1,6 +1,6 @@
-# PlutoDecayer: forced eta/eta' -> lepton(s)(+2pi/gamma) decays
+# EtaDecayer: forced eta/eta' -> lepton(s)(+2pi/gamma) decays
 
-`PlutoDecayer` (`interface/PlutoDecayer.h`, `src/PlutoDecayer.cc`) is a
+`EtaDecayer` (`interface/EtaDecayer.h`, `src/EtaDecayer.cc`) is a
 `Pythia8::DecayHandler` registered with Pythia8 through the classic
 `Pythia::setDecayPtr()` mechanism -- the same mechanism `BiasedTauDecayer`
 uses. It does not depend on Pythia8's newer `Init:plugins` loader (available
@@ -21,7 +21,7 @@ Added to `Pythia8::Settings` in `Py8InterfaceBase.cc`/`Py8HMC3InterfaceBase.cc`:
 | `Pluto:model`               | `pointlike` or `phaseSpace`                                | `pointlike`  |
 
 `Pluto:allowForcedDecay` is a deliberate safety interlock: once attached,
-`PlutoDecayer` decays **every** parent of that species exclusively into the
+`EtaDecayer` decays **every** parent of that species exclusively into the
 requested channel, replacing Pythia's own branching-ratio table for that
 particle. This is a forced-exclusive shape sample, not a
 branching-ratio-normalized one -- apply the branching fraction separately
@@ -43,7 +43,7 @@ processParameters = cms.vstring(
 ## Physics models and where they actually come from
 
 **None of this is Pluto's native physics code.** The package is named
-`PlutoDecayer` only because it plugs into Pythia8 the way the original,
+`EtaDecayer` only because it plugs into Pythia8 the way the original,
 now-removed prototype (`test/externalPlugins/pluto/`, an `Init:plugins`-based
 plugin linked against the real external Pluto library) did. That prototype's
 own notes (`IDENTICAL_MODEL.md`, `PIPI_MODEL.md`, before removal) record that
@@ -68,7 +68,7 @@ leading-order QED kinematics from Petri's thesis, arXiv:1010.2378
 (https://arxiv.org/abs/1010.2378), a general multi-body Dalitz-decay
 reference, not a Pluto-specific one:
 
-- **`4e`, `4mu`** (`interface/PlutoIdenticalDoubleDalitz.h`): eta/eta' ->
+- **`4e`, `4mu`** (`interface/EtaIdenticalDoubleDalitz.h`): eta/eta' ->
   gamma* gamma* -> 4 identical leptons. Includes the identical-fermion
   exchange interference (direct minus exchange amplitude, `|D-X|^2`),
   built explicitly from Dirac spinors and summed over the 16 external spin
@@ -80,41 +80,41 @@ reference, not a Pluto-specific one:
   amplitude-level form factor (`Amplitudes`' `ffAmplitude`), evaluated
   separately for the direct and exchange pairings' own invariant masses,
   *before* they interfere -- for **eta** this is the data-fitted Pade TFF
-  from `interface/PlutoEtaTFF.h` (arXiv:1504.07742); for **eta'** it is
+  from `interface/EtaTFF.h` (arXiv:1504.07742); for **eta'** it is
   still the generic rho0-pole model (the eta' Pade+VMD TFF of
-  `PlutoEtaPrimeTFF.h` is only |F|^2, and 4e/4mu needs the complex
+  `EtaPrimeTFF.h` is only |F|^2, and 4e/4mu needs the complex
   amplitude with phase continuity across the Pade/VMD seam -- not done). See "Literature read and applied"
   below for why the amplitude-level (not probability-level) placement was
   needed, and why the existing `|D-X|^2<=2(|D|^2+|X|^2)` bound needed no
   re-derivation to support it (it holds for any complex D, X, dressed or
   not).
-- **`2mu2e`** (`interface/PlutoMixedDoubleDalitz.h`): eta/eta' -> gamma*
+- **`2mu2e`** (`interface/EtaMixedDoubleDalitz.h`): eta/eta' -> gamma*
   gamma* -> mu+ mu- e+ e-, Eq. (3.36). No identical-fermion exchange exists
   here since the two currents have distinguishable lepton flavours. The
   constant form factor is replaced by a **factorized** product of two
   single-virtual form factors (arXiv:1511.04916 Eq. 8's "standard
   factorisation ansatz") -- for **eta**, `mixedPointlikeEtaPade` uses the
-  data-fitted Pade TFF (`interface/PlutoEtaTFF.h`, arXiv:1504.07742); for
+  data-fitted Pade TFF (`interface/EtaTFF.h`, arXiv:1504.07742); for
   **eta'**, `mixedPointlikeEtaPrime` uses the two-regime Pade + rho/omega/phi
-  VMD TFF of `interface/PlutoEtaPrimeTFF.h` (see below).
-- **`2e2pi`, `2mu2pi`** (`interface/PlutoLLPiPiChPT.h`): eta/eta' ->
+  VMD TFF of `interface/EtaPrimeTFF.h` (see below).
+- **`2e2pi`, `2mu2pi`** (`interface/EtaLLPiPiChPT.h`): eta/eta' ->
   l+ l- pi+ pi-. As of the latest pass this is **no longer** the
   constant-form-factor Petri baseline -- it uses the mass-dependence
   (pion-pair-mass polynomial x pi-pi resonance factor x dilepton
   rho/rho(1450) form factor) from Zillinger, Kubis, Sanchez-Puertas,
   arXiv:2210.14925, combined with the original Petri/EvtGen-cross-checked
-  "magnetic" angular shape from `interface/PlutoPiPiDilepton.h` (still
+  "magnetic" angular shape from `interface/EtaPiPiDilepton.h` (still
   present, still used for its angular formula and by
-  `interface/PlutoEtaPrimeLLPiPi.h`, but no longer called directly by
-  `PlutoDecayer` for the mass-dependence). See "Literature read and
+  `interface/EtaPrimeLLPiPi.h`, but no longer called directly by
+  `EtaDecayer` for the mass-dependence). See "Literature read and
   applied" and "Known gaps" below for exactly what is and isn't a faithful
   port of that paper.
-- **`2mugamma`, `2egamma`** (`interface/PlutoSingleDalitz.h`): eta/eta' -> gamma l+ l-,
+- **`2mugamma`, `2egamma`** (`interface/EtaSingleDalitz.h`): eta/eta' -> gamma l+ l-,
   the standard Kroll-Wada single-Dalitz shape. **eta** uses
   `singleDalitzEtaPade`, dressed by the data-fitted Pade TFF
-  (`interface/PlutoEtaTFF.h`, arXiv:1504.07742 Appendix A) instead of a
+  (`interface/EtaTFF.h`, arXiv:1504.07742 Appendix A) instead of a
   constant; **eta'** uses `singleDalitzEtaPrime`, dressed by the two-regime
-  transition form factor of arXiv:1511.04916 Sec. 2 (`interface/PlutoEtaPrimeTFF.h`):
+  transition form factor of arXiv:1511.04916 Sec. 2 (`interface/EtaPrimeTFF.h`):
   the eta'-specific Pade P^6_1 of arXiv:1307.2061 Table IV below
   sqrt(s)=0.70 GeV, and a coherent rho+omega+phi VMD sum above, with the
   VMD branch rescaled (real factor) to match the Pade magnitude at the
@@ -129,9 +129,9 @@ rate prediction. `model = phaseSpace` instead uses ROOT's `TGenPhaseSpace`
 (uniform phase space, no dynamics) as a kinematic control to check that the
 pointlike results are not merely a phase-space artifact.
 
-`interface/PlutoEtaPrimeLLPiPi.h` implements an eta'-only, EvtGen-`EvtEtaLLPiPi`-matched
+`interface/EtaPrimeLLPiPi.h` implements an eta'-only, EvtGen-`EvtEtaLLPiPi`-matched
 alternative to the current `2e2pi`/`2mu2pi` model (see "Provenance" below).
-It is **no longer called by `PlutoDecayer::decay()`** -- `PlutoLLPiPiChPT.h`
+It is **no longer called by `EtaDecayer::decay()`** -- `EtaLLPiPiChPT.h`
 is used for both parents instead, since it is validated against real data
 for both, where the EvtGen-matched model only exists for eta'. The header,
 and its unit test, remain in the codebase as a cross-check/fallback
@@ -155,7 +155,7 @@ reference, not as dead code to be deleted.
   `process.generator.PythiaParameters`; GlobalTag/era/beamspot/geometry
   resolve normally. 0/6284 raw `SoftQCD:nonDiffractive` events survived the
   downstream `etafilter`/`decayfilter`/`mufilter` acceptance cuts in that
-  run, which is expected minbias-eta-pT acceptance, not a PlutoDecayer issue.
+  run, which is expected minbias-eta-pT acceptance, not a EtaDecayer issue.
 - `2mu` and `2mugamma` were added after the initial round of channel testing
   and have **not yet been individually re-run through `cmsRun`** (only
   compiled). Do this before trusting them in a production config.
@@ -171,7 +171,7 @@ reference, not as dead code to be deleted.
 - **EvtGen's `EvtEta2MuMuGamma`** (single Dalitz, -> our `2mugamma`): its
   matrix element multiplies the QED tensor structure by a rho0-pole VMD
   form factor `1/((mRho^2-q^2)^2 + mRho^2*GammaRho^2)`, `q^2` = dilepton
-  mass^2. `PlutoSingleDalitz.h` now includes this factor (rho0 mass/width
+  mass^2. `EtaSingleDalitz.h` now includes this factor (rho0 mass/width
   taken from the caller's particle data table, PDG id 113, rather than
   EvtGen's hardcoded 0.768/0.151 GeV literals) with an algebraic rejection
   bound (the single-resonance pole has a closed-form maximum, unlike the
@@ -184,14 +184,14 @@ reference, not as dead code to be deleted.
   cross-check that the independently-derived Petri-based angular formula is
   correct. Its `F0(sLL, sPiPi)` piece, however, is a coherent two-resonance
   (rho0 in both the dilepton and dipion channels, with interference) form
-  factor, not constant. `interface/PlutoEtaPrimeLLPiPi.h` ports this
+  factor, not constant. `interface/EtaPrimeLLPiPi.h` ports this
   formula (rho mass/width taken from the caller's particle data table, not
   hardcoded, matching EvtGen's `EvtPDL::getMeanMass/getWidth("rho0")`) with
   a grid-searched rejection envelope (the F0 rational function's true
   maximum has no simple closed form, unlike the other headers' algebraic
   bounds). Implemented, unit-tested, and confirmed working (500-event
   stress runs, no envelope violations) -- but **superseded as the active
-  `2e2pi`/`2mu2pi` model** by `PlutoLLPiPiChPT.h` below once
+  `2e2pi`/`2mu2pi` model** by `EtaLLPiPiChPT.h` below once
   arXiv:2210.14925 was read, since that reference is validated against
   real data for both eta and eta', where this EvtGen port only exists for
   eta'. Kept in the codebase as a cross-check, not wired into `decay()`.
@@ -237,14 +237,14 @@ this paper.** Their full amplitude is an epsilon-tensor structure
 (`~ eps_uvab p1^v p2^a q^b`, their Eq. 2.2) whose squared matrix element
 carries its own angular dependence beyond what `f_1(s,s_l)` alone
 captures; correctly extracting that would be a separate, nontrivial
-derivation. `PlutoLLPiPiChPT.h` reuses `pipiMagneticPointlike`'s existing,
+derivation. `EtaLLPiPiChPT.h` reuses `pipiMagneticPointlike`'s existing,
 already-cross-checked-against-EvtGen angular shape unchanged, and only
 replaces what was previously a constant (F=1) with this paper's
 `|P(s)|^2 |Omega(s)|^2 |Fbar(s_l)|^2` as an additional mass-dependent
 reweighting. **This is a hybrid combination of two different sources for
 two different physics ingredients (mass-dependence vs. angular shape), not
 a first-principles port of arXiv:2210.14925's full amplitude.** Built,
-unit-tested (`PlutoLLPiPiChPT` test case: weight finiteness/positivity
+unit-tested (`EtaLLPiPiChPT` test case: weight finiteness/positivity
 across the physical domain for both parents and lepton flavors, closure,
 masses), and confirmed via `cmsRun` (300-event runs, `eta`/`etaprime` x
 `2e2pi`/`2mu2pi`, no exceptions or envelope violations).
@@ -294,7 +294,7 @@ the distribution, while the inclusion of the omega resonance accounts for
 the sharp peak around 0.8 GeV." **The rho-only VMD model (matching EvtGen, which also only has rho) was
 incomplete for `2mugamma` with `parent=331` -- it was missing the omega
 peak. This has since been fixed for eta' `2mugamma`/`2egamma`/`2mu2e`
-by `PlutoEtaPrimeTFF.h` (next section); the rho-only single-Dalitz
+by `EtaPrimeTFF.h` (next section); the rho-only single-Dalitz
 sampler `singleDalitz` remains in the tree only for reference/tests.** For eta,
 this doesn't apply: eta's accessible dilepton mass never reaches the
 rho/omega region at all (max ~0.3 GeV^2 vs. the pole at ~0.6 GeV^2), so the
@@ -319,7 +319,7 @@ content**: `4e`/`4mu` initially kept the constant-F `identicalPointlike`,
 because the factorized reweight used for `2mu2e` isn't valid here -- the
 exchange diagram pairs leptons differently than the direct diagram, so the
 two diagrams need the form factor evaluated at *different* invariant-mass
-pairs *before* they interfere. That bug is fixed: `PlutoIdenticalDoubleDalitz.h`'s
+pairs *before* they interfere. That bug is fixed: `EtaIdenticalDoubleDalitz.h`'s
 `Amplitudes` class now dresses each of the four photon propagators (two
 per diagram) with the amplitude-level complex rho0-pole factor
 (`ffAmplitude`) at its own invariant mass, then forms `|D-X|^2` exactly as
@@ -393,7 +393,7 @@ tabulates the actual fitted rational-function (Pade approximant)
 coefficients for eta's own single-virtual TFF (their Table 5, the
 `P_1^7(Q^2)` fit to `Q^2*F_etagammagamma*(Q^2)`) -- not just the
 slope/curvature summary (`b_eta`, `c_eta`) that a first pass through this
-paper had stopped at. `interface/PlutoEtaTFF.h` ports these 8 numbers
+paper had stopped at. `interface/EtaTFF.h` ports these 8 numbers
 (`t1..t7`, `r1`) directly:
 
 ```
@@ -487,7 +487,7 @@ page).
 
 ### Literature read and applied: eta' TFF with the omega resonance (arXiv:1307.2061 + arXiv:1511.04916 Sec. 2)
 
-`interface/PlutoEtaPrimeTFF.h` implements the paper's two-regime eta'
+`interface/EtaPrimeTFF.h` implements the paper's two-regime eta'
 transition form factor for **eta' `2mugamma`, `2egamma`, `2mu2e`** (factorized
 `F(s1)F(s2)` in the latter):
 
@@ -532,11 +532,11 @@ naive real rescale is not sufficient there.
 |---------------------------|-------------|-------------------------------------------------------------------------|
 | `2mu`                     | eta, eta'   | Trivial 2-body kinematics; no shape to get wrong. Build+run verified. |
 | `2mugamma`                | eta         | **Fixed**: rho-pole VMD factor matching EvtGen's `EvtEta2MuMuGamma`; confirmed a good approximation for eta by arXiv:1511.04916 (eta never reaches the rho/omega region, q^2 up to 0.30 GeV^2 vs. the rho pole at 0.60). Build+run verified. |
-| `2mugamma`, `2egamma`     | eta'        | **Fixed**: two-regime Pade + rho/omega/phi VMD TFF (`PlutoEtaPrimeTFF.h`); omega peak reproduced (bin-averaged peak ratio 1.03 vs. reference, continuum ~7%). VMD weights quark-model-derived, not PDG-derived (see section above); 25-40% tail deficit at 0.80-0.85 GeV. Catch2-tested; standalone-compiled (not yet `scram b`/`cmsRun`-verified in the shared area). |
+| `2mugamma`, `2egamma`     | eta'        | **Fixed**: two-regime Pade + rho/omega/phi VMD TFF (`EtaPrimeTFF.h`); omega peak reproduced (bin-averaged peak ratio 1.03 vs. reference, continuum ~7%). VMD weights quark-model-derived, not PDG-derived (see section above); 25-40% tail deficit at 0.80-0.85 GeV. Catch2-tested; standalone-compiled (not yet `scram b`/`cmsRun`-verified in the shared area). |
 | `2mu2e`                   | eta         | **Fixed**: factorized rho-pole double-virtual form factor per arXiv:1511.04916 Eq. 8; that paper shows constant-F undershoots by ~50%. Eta's dilepton reach stays below the rho pole (like `2mugamma`), so this fix should be a good approximation here. Build+run verified. |
 | `2mu2e`                   | eta'        | **Fixed**: factorized `F(s1)F(s2)` of the same eta' TFF (Fig. 10 dimuon shape within ~2-6% for 0.05-0.5 GeV^2). Catch2-tested; not yet `cmsRun`-verified in the shared area. |
 | `4e`, `4mu`               | eta, eta'   | **Methodology fixed, physics content still approximate**: the direct/exchange interference now correctly dresses each diagram's photon propagators with the amplitude-level rho0-pole factor at its own invariant mass (previously a real bug -- constant F=1 everywhere). But the form factor itself is still the simple single-rho-pole model, *not* arXiv:1511.04916's actual double-virtual TFF (their factorization ansatz/Chisholm approximants, whose coefficients weren't fully given in the pages read). So this addresses *where* the correction was structurally missing, not the full *size* of the originally-quantified gap (~6-20% for `4e`, ~60%-factor-2.2 for `4mu`). Unit-tested (envelope bound survives, closure, confirmed non-trivial vs. constant-F) and `cmsRun`-verified (500 events, all four parent x mode combinations). **`4e` now has a digitized-figure comparison too** (previously only `4mu` did) -- both eta and eta' `4e`/`4mu` shapes visually checked against arXiv:1511.04916's own "Total distribution" curves, see below. |
-| `2e2pi`, `2mu2pi`         | eta, eta'   | **Replaced**: now uses `PlutoLLPiPiChPT.h`, mass-dependence from arXiv:2210.14925 (read; validated against measured BRs for both parents' e+e- channels) combined with the existing (EvtGen-cross-checked) angular shape. The pi-pi Omnes function is **approximated** by a single rho Breit-Wigner (the paper's own authors' exact parametrization isn't public); the angular part is **not** re-derived from this paper's full amplitude. `PlutoEtaPrimeLLPiPi.h` (EvtGen-matched, eta'-only) remains in the codebase, tested, but is no longer the active model. Build+run verified for all four (parent x mode) combinations, plus the full unit test suite. **Cross-checked against arXiv:0705.0954 Fig. 7** (digitized, see above): eta channels' dilepton-mass peak positions match well (e+e-: 70 vs. 66 MeV; mu+mu-: 217 vs. 219 MeV); eta' channels show a real shape difference (e+e-: 99 vs. 131 MeV; mu+mu-: 202 vs. 246 MeV), consistent with the ~43% eta'->mumu tension already known to exist between these two papers' independent calculations. |
+| `2e2pi`, `2mu2pi`         | eta, eta'   | **Replaced**: now uses `EtaLLPiPiChPT.h`, mass-dependence from arXiv:2210.14925 (read; validated against measured BRs for both parents' e+e- channels) combined with the existing (EvtGen-cross-checked) angular shape. The pi-pi Omnes function is **approximated** by a single rho Breit-Wigner (the paper's own authors' exact parametrization isn't public); the angular part is **not** re-derived from this paper's full amplitude. `EtaPrimeLLPiPi.h` (EvtGen-matched, eta'-only) remains in the codebase, tested, but is no longer the active model. Build+run verified for all four (parent x mode) combinations, plus the full unit test suite. **Cross-checked against arXiv:0705.0954 Fig. 7** (digitized, see above): eta channels' dilepton-mass peak positions match well (e+e-: 70 vs. 66 MeV; mu+mu-: 217 vs. 219 MeV); eta' channels show a real shape difference (e+e-: 99 vs. 131 MeV; mu+mu-: 202 vs. 246 MeV), consistent with the ~43% eta'->mumu tension already known to exist between these two papers' independent calculations. |
 | `phaseSpace` (all modes)  | eta, eta'   | Uniform phase space, no dynamics claimed; working as a kinematic control only. Build+run verified. |
 
 **All four papers referenced in this document (arXiv:1511.04916,
@@ -606,6 +606,6 @@ The pointlike models draw directly from Pythia's own random stream
 (`pythia_->rndm.flat()`), which CMSSW's `RandomNumberGeneratorService`
 already manages per-stream -- no extra bridging is needed. Only the
 `phaseSpace` control model touches ROOT's global `gRandom` (via
-`TGenPhaseSpace`); `PlutoDecayer.cc` temporarily swaps in a `TRandom`
+`TGenPhaseSpace`); `EtaDecayer.cc` temporarily swaps in a `TRandom`
 adapter over Pythia's stream for the duration of that one call, guarded by
 a mutex, since `gRandom` is a single process-wide global.

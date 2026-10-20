@@ -1,14 +1,14 @@
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoDecayer.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoMixedDoubleDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoPiPiDilepton.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoIdenticalDoubleDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoSingleDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeLLPiPi.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoLLPiPiChPT.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoBSMDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoBSMPiPiA.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaDecayer.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaMixedDoubleDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPiPiDilepton.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaIdenticalDoubleDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaSingleDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPrimeLLPiPi.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaLLPiPiChPT.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPrimeTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaBSMDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaBSMPiPiA.h"
 
 #include "TGenPhaseSpace.h"
 #include "TRandom.h"
@@ -23,7 +23,7 @@ namespace {
   // Only the phaseSpace control model touches ROOT's global gRandom (via
   // TGenPhaseSpace). Route it through Pythia's own, CMSSW-managed random
   // stream for reproducibility, and guard the global with a mutex since
-  // multiple streams/threads may run PlutoDecayer concurrently.
+  // multiple streams/threads may run EtaDecayer concurrently.
   std::mutex gRandomMutex;
   class PythiaRandom : public TRandom {
   public:
@@ -56,7 +56,7 @@ namespace {
   }
 }  // namespace
 
-PlutoDecayer::PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settingsPtr) : pythia_(pythiaPtr) {
+EtaDecayer::EtaDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settingsPtr) : pythia_(pythiaPtr) {
   filter_ = settingsPtr->flag("Pluto:filter");
   parentId_ = settingsPtr->mode("Pluto:parent");
   mode_ = settingsPtr->word("Pluto:mode");
@@ -90,7 +90,7 @@ PlutoDecayer::PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settin
     daughterIds_ = {13, -13, 211, -211};
   else if (mode_ == "2muA") {
     // BSM: eta/eta' -> mu+ mu- A (A = a dark photon or ALP, decaying separately to e+ e-
-    // via Pythia's own decay table) -- see PlutoBSMDalitz.h for the production amplitude.
+    // via Pythia's own decay table) -- see EtaBSMDalitz.h for the production amplitude.
     aId_ = settingsPtr->mode("Pluto:A_id");
     aType_ = settingsPtr->word("Pluto:A_type");
     if (aId_ == 0)
@@ -103,7 +103,7 @@ PlutoDecayer::PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settin
     daughterIds_ = {13, -13, aId_};
   } else if (mode_ == "2piA") {
     // BSM: eta/eta' -> pi+ pi- A (A decays separately to mu+ mu-, as fixed by this
-    // channel's design -- see PlutoBSMPiPiA.h for the production amplitude).
+    // channel's design -- see EtaBSMPiPiA.h for the production amplitude).
     aId_ = settingsPtr->mode("Pluto:A_id");
     aType_ = settingsPtr->word("Pluto:A_type");
     if (aId_ == 0)
@@ -163,7 +163,7 @@ PlutoDecayer::PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settin
                         pythia_->particleData.m0(parentId_), daughterMasses_[0], daughterMasses_[2]);
   } else if (model_ == "pointlike" && (mode_ == "4e" || mode_ == "4mu")) {
     // Exact bound on |F(s1)|^2|F(s2)|^2 over the accessible dilepton masses --
-    // see PlutoIdenticalDoubleDalitz.h's identicalPointlike for why this must
+    // see EtaIdenticalDoubleDalitz.h's identicalPointlike for why this must
     // be an upper bound on the *undressed* proposal's blow-up, not a reweight
     // of the dressed scores. eta: same Pade double bound as the 2mu2e
     // sampler. eta': the single rho0-pole BW used here (not the two-regime
@@ -191,7 +191,7 @@ PlutoDecayer::PlutoDecayer(Pythia8::Pythia* pythiaPtr, Pythia8::Settings* settin
   }
 }
 
-bool PlutoDecayer::decay(std::vector<int>& idProd,
+bool EtaDecayer::decay(std::vector<int>& idProd,
                           std::vector<double>& mProd,
                           std::vector<Pythia8::Vec4>& pProd,
                           int /*iDec*/,
@@ -245,22 +245,22 @@ bool PlutoDecayer::decay(std::vector<int>& idProd,
   } else if (mode_ == "2mugamma" || mode_ == "2egamma") {
     // eta: data-fitted eta TFF (arXiv:1504.07742 Appendix A). eta': the
     // paper's two-regime model (arXiv:1511.04916 Sec. 2) -- eta'-specific
-    // Pade below 0.70 GeV, rho+omega+phi VMD above -- see PlutoEtaPrimeTFF.h.
+    // Pade below 0.70 GeV, rho+omega+phi VMD above -- see EtaPrimeTFF.h.
     result = parentId_ == 221
                  ? toVector(gen::pluto::singleDalitzEtaPade(parent, daughterMasses_[0], tffBound_, flat))
                  : toVector(gen::pluto::singleDalitzEtaPrime(parent, daughterMasses_[0], tffBound_, flat));
   } else if (mode_ == "4e" || mode_ == "4mu") {
     // Amplitude-level form factor dressing of each diagram's two virtual
     // photons (direct and exchange evaluated at their own, different,
-    // invariant masses) before they interfere -- see PlutoIdenticalDoubleDalitz.h.
+    // invariant masses) before they interfere -- see EtaIdenticalDoubleDalitz.h.
     // eta uses the data-fitted eta TFF; eta' uses the rho0-pole model.
     result = toVector(gen::pluto::identicalPointlike(
         parent, daughterMasses_[0], flat, rhoMass_, rhoGamma_, parentId_ == 221, fourBound_));
   } else if (mode_ == "2mu2e") {
     // Factorized double-virtual form factor (arXiv:1511.04916 Eq. 8); no
     // exchange interference exists here, so this reweighting is unambiguous.
-    // eta uses the data-fitted eta TFF (PlutoEtaTFF.h); eta' the two-regime
-    // Pade + rho/omega/phi VMD TFF (PlutoEtaPrimeTFF.h).
+    // eta uses the data-fitted eta TFF (EtaTFF.h); eta' the two-regime
+    // Pade + rho/omega/phi VMD TFF (EtaPrimeTFF.h).
     result = parentId_ == 221
                  ? toVector(gen::pluto::mixedPointlikeEtaPade(
                        parent, daughterMasses_[0], daughterMasses_[2], tffBound_, flat))
@@ -293,7 +293,7 @@ bool PlutoDecayer::decay(std::vector<int>& idProd,
   } else {
     // eta/eta' 2e2pi/2mu2pi: mass-dependence from Zillinger/Kubis/Sanchez-Puertas,
     // arXiv:2210.14925 (P(s)*Omega(s)*Fbar(s_l), Omega approximated -- see
-    // PlutoLLPiPiChPT.h), combined with pipiMagneticPointlike's angular shape.
+    // EtaLLPiPiChPT.h), combined with pipiMagneticPointlike's angular shape.
     result = toVector(gen::pluto::llpipiChPT(parent,
                                               daughterMasses_[0],
                                               daughterMasses_[2],

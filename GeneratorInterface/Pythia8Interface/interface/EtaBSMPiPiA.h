@@ -1,15 +1,15 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoBSMPiPiA_h
-#define GeneratorInterface_Pythia8Interface_PlutoBSMPiPiA_h
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoLLPiPiChPT.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoBSMDalitz.h"
+#ifndef GeneratorInterface_Pythia8Interface_EtaBSMPiPiA_h
+#define GeneratorInterface_Pythia8Interface_EtaBSMPiPiA_h
+#include "GeneratorInterface/Pythia8Interface/interface/EtaLLPiPiChPT.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaBSMDalitz.h"
 #include "TLorentzVector.h"
 #include <array>
 #include <cmath>
 #include <stdexcept>
 
-// BSM generalization of PlutoLLPiPiChPT.h's eta/eta' -> l+ l- pi+ pi- to
+// BSM generalization of EtaLLPiPiChPT.h's eta/eta' -> l+ l- pi+ pi- to
 // eta/eta' -> A pi+ pi-, A a new on-shell boson (dark photon or ALP),
-// paralleling PlutoBSMDalitz.h's generalization of the single-Dalitz decay.
+// paralleling EtaBSMDalitz.h's generalization of the single-Dalitz decay.
 // A is inserted as an explicit event-record daughter; its own decay (to a
 // *different* lepton flavor than this header's name might suggest -- here
 // A -> mu+ mu-) is handled by Pythia's native decay machinery, not here.
@@ -27,7 +27,7 @@
 // pi (virtual photon) vertex, which does not care what the recoiling boson
 // is, under the same photon-like-coupling assumption already used for the
 // 2muA channel (same leading-order caveat: not re-derived for a genuinely
-// massive exchange, see PlutoBSMDalitz.h). The lepton-pair-orientation
+// massive exchange, see EtaBSMDalitz.h). The lepton-pair-orientation
 // variables (cl, phi) of the original 4-body amplitude have no analogue
 // here (A has not split into 2 bodies at this level) -- rather than
 // analytically marginalize them out of the weight, they are kept as

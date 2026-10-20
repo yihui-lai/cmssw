@@ -2,7 +2,7 @@
 """Render comparison_data.json (from make_comparison_data.py) as PNG overlays.
 
 One PNG per paper: paper_compare_1511.png (12 panels) and
-paper_compare_0705.png (4 panels). Reference curve = line, PlutoDecayer MC
+paper_compare_0705.png (4 panels). Reference curve = line, EtaDecayer MC
 (area-scaled to the reference) = dots. Only needs PIL (no matplotlib).
 
 Usage: plot_comparison_png.py [comparison_data.json] [output_dir]
@@ -154,7 +154,7 @@ def render(panels, data, out, ncol, title):
     d.text((52, 44), "reference (digitized, csv/)", font=F(REG, 13), fill="#222")
     d.ellipse([280, 46, 288, 54], fill=MC_COL[0])
     d.ellipse([294, 46, 302, 54], fill=MC_COL[1])
-    d.text((310, 44), "PlutoDecayer MC (η / η′), area-scaled to reference", font=F(REG, 13), fill="#222")
+    d.text((310, 44), "EtaDecayer MC (η / η′), area-scaled to reference", font=F(REG, 13), fill="#222")
     for i, spec in enumerate(panels):
         r, c = divmod(i, ncol)
         box = (15 + c * pw, 75 + r * ph, 15 + (c + 1) * pw - 12, 75 + (r + 1) * ph - 6)
@@ -167,5 +167,5 @@ if __name__ == "__main__":
     data_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "output", "comparison_data.json")
     outdir = sys.argv[2] if len(sys.argv) > 2 else os.path.dirname(os.path.abspath(data_path))
     data = json.load(open(data_path))
-    render(P1511, data, os.path.join(outdir, "paper_compare_1511.png"), 3, "PlutoDecayer vs arXiv:1511.04916 (Escribano & González-Solís)")
-    render(P0705, data, os.path.join(outdir, "paper_compare_0705.png"), 2, "PlutoDecayer vs arXiv:0705.0954 (Borasoy & Nissler)")
+    render(P1511, data, os.path.join(outdir, "paper_compare_1511.png"), 3, "EtaDecayer vs arXiv:1511.04916 (Escribano & González-Solís)")
+    render(P0705, data, os.path.join(outdir, "paper_compare_0705.png"), 2, "EtaDecayer vs arXiv:0705.0954 (Borasoy & Nissler)")

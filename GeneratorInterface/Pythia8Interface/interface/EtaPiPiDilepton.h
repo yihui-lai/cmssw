@@ -1,5 +1,5 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoPiPiDilepton_h
-#define GeneratorInterface_Pythia8Interface_PlutoPiPiDilepton_h
+#ifndef GeneratorInterface_Pythia8Interface_EtaPiPiDilepton_h
+#define GeneratorInterface_Pythia8Interface_EtaPiPiDilepton_h
 #include "TLorentzVector.h"
 #include <algorithm>
 #include <array>

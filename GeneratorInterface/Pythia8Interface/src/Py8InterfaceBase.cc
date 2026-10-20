@@ -93,7 +93,7 @@ namespace gen {
     fMasterGen->settings.addWord("Pluto:model", "pointlike");
     //add settings for the BSM eta/eta' -> 2mu+A(->2e) mode (A = a dark photon or ALP; A
     //must be registered as its own Pythia particle, e.g. via "<id>:all = ...", before
-    //this is read -- see GeneratorInterface/Pythia8Interface/interface/PlutoBSMDalitz.h)
+    //this is read -- see GeneratorInterface/Pythia8Interface/interface/EtaBSMDalitz.h)
     fMasterGen->settings.addMode("Pluto:A_id", 0, true, false, 0, 0);
     fMasterGen->settings.addWord("Pluto:A_type", "darkphoton");
 

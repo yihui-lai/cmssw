@@ -1,15 +1,15 @@
 #include "catch.hpp"
 
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoIdenticalDoubleDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoMixedDoubleDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoPiPiDilepton.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoSingleDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeLLPiPi.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoLLPiPiChPT.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoBSMDalitz.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoBSMPiPiA.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaIdenticalDoubleDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaMixedDoubleDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPiPiDilepton.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaSingleDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPrimeLLPiPi.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaLLPiPiChPT.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPrimeTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaBSMDalitz.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaBSMPiPiA.h"
 
 #include <random>
 
@@ -38,8 +38,8 @@ namespace {
   }
 }  // namespace
 
-TEST_CASE("PlutoIdenticalDoubleDalitz: 4e/4mu direct score, exchange symmetry, Pauli cancellation, closure",
-          "[PlutoDecayer]") {
+TEST_CASE("EtaIdenticalDoubleDalitz: 4e/4mu direct score, exchange symmetry, Pauli cancellation, closure",
+          "[EtaDecayer]") {
   std::mt19937_64 rng(9876);
   auto flat = [&]() { return std::generate_canonical<double, 53>(rng); };
   bool nonzeroInterference = false;
@@ -100,8 +100,8 @@ TEST_CASE("PlutoIdenticalDoubleDalitz: 4e/4mu direct score, exchange symmetry, P
       }
 }
 
-TEST_CASE("PlutoIdenticalDoubleDalitz: rho0-pole-dressed 4e/4mu, bound survives, closure, actually changes shape",
-          "[PlutoDecayer]") {
+TEST_CASE("EtaIdenticalDoubleDalitz: rho0-pole-dressed 4e/4mu, bound survives, closure, actually changes shape",
+          "[EtaDecayer]") {
   const double rhoMass = 0.7754, rhoGamma = 0.1462;
   const double m = 0.105658;
 
@@ -151,7 +151,7 @@ TEST_CASE("PlutoIdenticalDoubleDalitz: rho0-pole-dressed 4e/4mu, bound survives,
   }
 }
 
-TEST_CASE("PlutoMixedDoubleDalitz: 2mu2e angular integral, envelope, thresholds, closure", "[PlutoDecayer]") {
+TEST_CASE("EtaMixedDoubleDalitz: 2mu2e angular integral, envelope, thresholds, closure", "[EtaDecayer]") {
   // Three-point Gauss-Legendre exactly integrates the angular polynomial's
   // cosine dependence; cross-checks the closed-form average independently.
   const double nodes[] = {-std::sqrt(3. / 5), 0, std::sqrt(3. / 5)};
@@ -189,7 +189,7 @@ TEST_CASE("PlutoMixedDoubleDalitz: 2mu2e angular integral, envelope, thresholds,
     }
 }
 
-TEST_CASE("PlutoPiPiDilepton: 2e2pi/2mu2pi angular integral and sign, envelope, closure", "[PlutoDecayer]") {
+TEST_CASE("EtaPiPiDilepton: 2e2pi/2mu2pi angular integral and sign, envelope, closure", "[EtaDecayer]") {
   const double pi = std::acos(-1.);
   const double nodes[] = {-std::sqrt(3. / 5), 0, std::sqrt(3. / 5)}, ws[] = {5. / 18, 4. / 9, 5. / 18};
   for (double beta2 : {0., 0.5, 1.}) {
@@ -228,7 +228,7 @@ TEST_CASE("PlutoPiPiDilepton: 2e2pi/2mu2pi angular integral and sign, envelope, 
       }
 }
 
-TEST_CASE("PlutoMixedDoubleDalitz: 2mu2e resonant form factor, envelope, closure", "[PlutoDecayer]") {
+TEST_CASE("EtaMixedDoubleDalitz: 2mu2e resonant form factor, envelope, closure", "[EtaDecayer]") {
   const double rhoMass = 0.7754, rhoGamma = 0.1462;
   std::mt19937_64 rng(3141);
   auto flat = [&]() { return std::generate_canonical<double, 53>(rng); };
@@ -247,7 +247,7 @@ TEST_CASE("PlutoMixedDoubleDalitz: 2mu2e resonant form factor, envelope, closure
     }
 }
 
-TEST_CASE("PlutoSingleDalitz: 2mugamma VMD pole bound, massless photon, closure", "[PlutoDecayer]") {
+TEST_CASE("EtaSingleDalitz: 2mugamma VMD pole bound, massless photon, closure", "[EtaDecayer]") {
   const double rhoMass = 0.7754, rhoGamma = 0.1462;  // PDG rho0
   // The form factor used inside the sampler, FF(q^2)/FF(mRho^2), must be
   // bounded by 1 and peak (=1) exactly at the pole -- checked algebraically,
@@ -283,7 +283,7 @@ TEST_CASE("PlutoSingleDalitz: 2mugamma VMD pole bound, massless photon, closure"
       }
 }
 
-TEST_CASE("PlutoEtaPrimeLLPiPi: F0 finiteness/positivity, envelope, closure (eta' only)", "[PlutoDecayer]") {
+TEST_CASE("EtaPrimeLLPiPi: F0 finiteness/positivity, envelope, closure (eta' only)", "[EtaDecayer]") {
   const double rhoMass = 0.7754, rhoGamma = 0.1462;
   const double mEtaPrime = 0.95778, ml = 0.105658, mpi = 0.139570;
 
@@ -314,8 +314,8 @@ TEST_CASE("PlutoEtaPrimeLLPiPi: F0 finiteness/positivity, envelope, closure (eta
   }
 }
 
-TEST_CASE("PlutoLLPiPiChPT: arXiv:2210.14925-based weight, both parents, envelope, closure",
-          "[PlutoDecayer]") {
+TEST_CASE("EtaLLPiPiChPT: arXiv:2210.14925-based weight, both parents, envelope, closure",
+          "[EtaDecayer]") {
   const double rhoMass = 0.7754, rhoGamma = 0.1462;
   const double rhopMass = 1.465, rhopGamma = 0.400;
   const double mEta = 0.547862, mEtaPrime = 0.95778, mpi = 0.139570;
@@ -358,7 +358,7 @@ TEST_CASE("PlutoLLPiPiChPT: arXiv:2210.14925-based weight, both parents, envelop
   }
 }
 
-TEST_CASE("PlutoEtaTFF: reproduces the paper's own b_eta self-check, finite and monotonic", "[PlutoDecayer]") {
+TEST_CASE("EtaTFF: reproduces the paper's own b_eta self-check, finite and monotonic", "[EtaDecayer]") {
   // Eq. A.2 of arXiv:1504.07742: b_eta = (t1*r1 - t2)*m_eta^2/t1, quoted
   // there as 0.5749 from these exact Table 5 coefficients -- note the
   // normalization scale in the paper's own Eq. 1 is m_eta^2 (the parent
@@ -383,8 +383,8 @@ TEST_CASE("PlutoEtaTFF: reproduces the paper's own b_eta self-check, finite and 
   }
 }
 
-TEST_CASE("PlutoSingleDalitz/PlutoMixedDoubleDalitz eta Pade branch: envelope, closure, masses",
-          "[PlutoDecayer]") {
+TEST_CASE("EtaSingleDalitz/EtaMixedDoubleDalitz eta Pade branch: envelope, closure, masses",
+          "[EtaDecayer]") {
   const double mEta = 0.547862, mMu = 0.105658, mE = 0.000511;
   std::mt19937_64 rng(987123);
   auto flat = [&]() { return std::generate_canonical<double, 53>(rng); };
@@ -416,8 +416,8 @@ TEST_CASE("PlutoSingleDalitz/PlutoMixedDoubleDalitz eta Pade branch: envelope, c
   }
 }
 
-TEST_CASE("PlutoIdenticalDoubleDalitz useEtaPade branch: bound survives, closure, differs from constant-F",
-          "[PlutoDecayer]") {
+TEST_CASE("EtaIdenticalDoubleDalitz useEtaPade branch: bound survives, closure, differs from constant-F",
+          "[EtaDecayer]") {
   const double mEta = 0.547862, mMu = 0.105658;
   std::mt19937_64 rng(456789);
   auto flat = [&]() { return std::generate_canonical<double, 53>(rng); };
@@ -446,7 +446,7 @@ TEST_CASE("PlutoIdenticalDoubleDalitz useEtaPade branch: bound survives, closure
   }
 }
 
-TEST_CASE("PlutoEtaPrimeTFF: normalization, slope, seam continuity, omega peak, bounds", "[PlutoDecayer]") {
+TEST_CASE("EtaPrimeTFF: normalization, slope, seam continuity, omega peak, bounds", "[EtaDecayer]") {
   const double mEtaP = 0.95778;
   auto F = [](double q2) { return std::sqrt(gen::pluto::etaPrimeFormFactorNormSq(q2)); };
 
@@ -509,8 +509,8 @@ TEST_CASE("PlutoEtaPrimeTFF: normalization, slope, seam continuity, omega peak, 
   REQUIRE(inOmegaWindow > 0.02 * n);
 }
 
-TEST_CASE("PlutoBSMDalitz: eta/eta' -> mu mu A kinematics, dark photon and ALP, closure, bounds",
-          "[PlutoDecayer]") {
+TEST_CASE("EtaBSMDalitz: eta/eta' -> mu mu A kinematics, dark photon and ALP, closure, bounds",
+          "[EtaDecayer]") {
   const double mEta = 0.547862, mEtaP = 0.95778, mMu = 0.105658;
   std::mt19937_64 rng(13579);
   auto flat = [&]() { return std::generate_canonical<double, 53>(rng); };
@@ -568,8 +568,8 @@ TEST_CASE("PlutoBSMDalitz: eta/eta' -> mu mu A kinematics, dark photon and ALP, 
   }
 }
 
-TEST_CASE("PlutoBSMPiPiA: eta/eta' -> pi pi A kinematics, dark photon and ALP, closure, bounds",
-          "[PlutoDecayer]") {
+TEST_CASE("EtaBSMPiPiA: eta/eta' -> pi pi A kinematics, dark photon and ALP, closure, bounds",
+          "[EtaDecayer]") {
   const double mEta = 0.547862, mEtaP = 0.95778, mPi = 0.13957, mMu = 0.105658;
   const double rhoM = 0.7754, rhoG = 0.1462, rhopM = 1.465, rhopG = 0.400;
   std::mt19937_64 rng(24680);

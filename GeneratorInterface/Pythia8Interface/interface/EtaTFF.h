@@ -1,5 +1,5 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoEtaTFF_h
-#define GeneratorInterface_Pythia8Interface_PlutoEtaTFF_h
+#ifndef GeneratorInterface_Pythia8Interface_EtaTFF_h
+#define GeneratorInterface_Pythia8Interface_EtaTFF_h
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>

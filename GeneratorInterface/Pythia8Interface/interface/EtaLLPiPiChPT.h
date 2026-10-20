@@ -1,6 +1,6 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoLLPiPiChPT_h
-#define GeneratorInterface_Pythia8Interface_PlutoLLPiPiChPT_h
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeLLPiPi.h"
+#ifndef GeneratorInterface_Pythia8Interface_EtaLLPiPiChPT_h
+#define GeneratorInterface_Pythia8Interface_EtaLLPiPiChPT_h
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPrimeLLPiPi.h"
 #include "TLorentzVector.h"
 #include <algorithm>
 #include <array>
@@ -13,8 +13,8 @@ namespace gen {
     // eta/eta' -> l+ l- pi+ pi-, mass-dependence from Zillinger, Kubis,
     // Sanchez-Puertas, arXiv:2210.14925, Section 3 (their Standard-Model
     // amplitude, not the CP-violating BSM part of that paper). Unlike
-    // PlutoPiPiDilepton.h (constant F=1, eta only) and
-    // PlutoEtaPrimeLLPiPi.h (EvtGen-matched, eta' only), this is the first
+    // EtaPiPiDilepton.h (constant F=1, eta only) and
+    // EtaPrimeLLPiPi.h (EvtGen-matched, eta' only), this is the first
     // model here validated against *measured* branching ratios for both
     // parents (their Table 1: eta/eta' -> pi+pi-e+e- agree with KLOE/BESIII
     // data at the few-percent level) and it covers eta, which had no
@@ -81,7 +81,7 @@ namespace gen {
     }
 
     // Grid-search the weight's maximum over the physical (s,sl) domain, same
-    // technique and same caveat as PlutoEtaPrimeLLPiPi.h's etaPrimeF0Bound:
+    // technique and same caveat as EtaPrimeLLPiPi.h's etaPrimeF0Bound:
     // this rational/polynomial product has no simple closed-form bound.
     inline double llpipiWeightBound(double mParent, double mPi, double mLep, bool isEtaPrime, double rhoMass,
                                      double rhoGamma, double rhopMass, double rhopGamma, unsigned grid = 300) {

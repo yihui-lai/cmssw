@@ -1,7 +1,7 @@
-#ifndef GeneratorInterface_Pythia8Interface_PlutoSingleDalitz_h
-#define GeneratorInterface_Pythia8Interface_PlutoSingleDalitz_h
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaTFF.h"
-#include "GeneratorInterface/Pythia8Interface/interface/PlutoEtaPrimeTFF.h"
+#ifndef GeneratorInterface_Pythia8Interface_EtaSingleDalitz_h
+#define GeneratorInterface_Pythia8Interface_EtaSingleDalitz_h
+#include "GeneratorInterface/Pythia8Interface/interface/EtaTFF.h"
+#include "GeneratorInterface/Pythia8Interface/interface/EtaPrimeTFF.h"
 #include "TLorentzVector.h"
 #include <array>
 #include <cmath>
@@ -23,7 +23,7 @@ namespace gen {
     // the photon pole; the angular/phase-space factors are bounded by 1 (up
     // to the shared /2), and |F(q^2)|^2 is bounded algebraically by its
     // value at the pole, 1/(mRho^2 GammaRho^2), giving a fixed rejection
-    // envelope with no grid search needed (unlike PlutoEtaPrimeLLPiPi.h's
+    // envelope with no grid search needed (unlike EtaPrimeLLPiPi.h's
     // two-resonance interference, this is a single resonance).
     template <class Flat>
     std::array<TLorentzVector, 3> singleDalitz(
@@ -74,7 +74,7 @@ namespace gen {
 
     // eta (221) only: same kinematic/angular structure as singleDalitz, but
     // the constant/rho-pole form factor is replaced by the actual
-    // data-fitted eta TFF (PlutoEtaTFF.h, arXiv:1504.07742 Appendix A) --
+    // data-fitted eta TFF (EtaTFF.h, arXiv:1504.07742 Appendix A) --
     // verified monotonic and finite across eta's whole kinematic range, so
     // formFactorBound (from etaPadeSingleBound, computed once by the
     // caller) is a safe rejection envelope.
@@ -170,7 +170,7 @@ namespace gen {
     }
 
     // eta' (331) only: the two-regime Pade + rho/omega/phi VMD transition
-    // form factor of PlutoEtaPrimeTFF.h. formFactorBound comes from
+    // form factor of EtaPrimeTFF.h. formFactorBound comes from
     // etaPrimeSingleBound, computed once by the caller.
     template <class Flat>
     std::array<TLorentzVector, 3> singleDalitzEtaPrime(
