@@ -1,0 +1,4 @@
+# generated large intermediate data / compiled binaries -- plots are the deliverable
+sm_validation.csv
+gen_sm_validation
+__pycache__/

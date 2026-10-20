@@ -1,0 +1,4 @@
+# generated intermediate data / compiled binary -- plots are the deliverable
+bsm_mc.csv
+bsm_cms_gen
+__pycache__/

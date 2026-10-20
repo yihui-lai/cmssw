@@ -81,8 +81,15 @@ int main(int argc, char** argv) {
   {
     TLorentzVector parent(0, 0, 0, METAH);
     Hist hPair(4 * MMU * MMU, std::pow(METAH - 2 * MMU, 2));
+    // doubleBound must be an explicit sup|F(s1)|^2|F(s2)|^2 for useEtaPade=true
+    // -- the function's own default of 1 is only valid for the undressed
+    // (F=1) case (see EtaIdenticalDoubleDalitz.h's identicalPointlike doc
+    // comment); omitting it here used to intermittently/deterministically
+    // throw "Four-lepton coherent envelope violated". Mirrors EtaDecayer.cc's
+    // own fourBound_ computation for this exact mode.
+    const double fourBoundMu = gen::pluto::etaPadeDoubleBound(METAH, MMU, MMU);
     for (int i = 0; i < N; ++i) {
-      auto out = gen::pluto::identicalPointlike(parent, MMU, flat, RHO_M, RHO_G, true);
+      auto out = gen::pluto::identicalPointlike(parent, MMU, flat, RHO_M, RHO_G, true, fourBoundMu);
       hPair.fill((out[0] + out[1]).M2());
       hPair.fill((out[2] + out[3]).M2());  // both pairs are physically equivalent observables
     }
@@ -94,8 +101,9 @@ int main(int argc, char** argv) {
   {
     TLorentzVector parent(0, 0, 0, METAH);
     Hist hPair(4 * ME * ME, std::pow(METAH - 2 * ME, 2));
+    const double fourBoundE = gen::pluto::etaPadeDoubleBound(METAH, ME, ME);
     for (int i = 0; i < N; ++i) {
-      auto out = gen::pluto::identicalPointlike(parent, ME, flat, RHO_M, RHO_G, true);
+      auto out = gen::pluto::identicalPointlike(parent, ME, flat, RHO_M, RHO_G, true, fourBoundE);
       hPair.fill((out[0] + out[1]).M2());
       hPair.fill((out[2] + out[3]).M2());
     }
