@@ -2995,6 +2995,29 @@ upgradeWFs['JetCore'] = UpgradeWorkflow_JetCore(
     offset = 0.19002,
 )
 
+class UpgradeWorkflow_NNPixelClusterSplittingJetCore(UpgradeWorkflow):
+    def setup_(self, step, stepName, stepDict, k, properties):
+        stepDict[stepName][k] = merge([{'--procModifiers': 'nnSplitClustersInPhase2Pixel,jetCoreInPhase2'}, stepDict[step][k]])
+    def condition(self, fragment, stepList, key, hasHarvest):
+        return 'Run4' in key
+
+upgradeWFs['NNPixelClusterSplittingJetCore'] = UpgradeWorkflow_NNPixelClusterSplittingJetCore(
+    steps = [
+        'RecoLocal',
+        'Reco',
+        'RecoFakeHLT',
+        'RecoGlobal',
+    ],
+    PU = [
+        'RecoLocal',
+        'Reco',
+        'RecoFakeHLT',
+        'RecoGlobal',
+    ],
+    suffix = '_NNPixelClusterSplittingJetCore',
+    offset = 0.19004,
+)
+
 class UpgradeWorkflow_SplittingFromHLT(UpgradeWorkflow):
     def setup_(self, step, stepName, stepDict, k, properties):
         stepDict[stepName][k] = merge([{'--procModifiers': 'hltClusterSplitting'}, stepDict[step][k]])

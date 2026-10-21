@@ -58,3 +58,7 @@ from Configuration.Eras.Modifier_phase2_squarePixels_cff import phase2_squarePix
 (phase2_tracker & (phase2_squarePixels | phase2_3DPixels)).toModify(PixelCPEGenericESProducer,
                                                                     NoTemplateErrorsWhenNoTrkAngles = False # use genErrors in the seeding step (when no track angles are available)
                                                                     )
+
+# use the hit errors predicted by the network cluster splitter for the split clusters (as the template CPE does)
+from Configuration.ProcessModifiers.nnSplitClustersInPhase2Pixel_cff import nnSplitClustersInPhase2Pixel
+(phase2_tracker & nnSplitClustersInPhase2Pixel).toModify(PixelCPEGenericESProducer, useSplitClusterErrors = True)

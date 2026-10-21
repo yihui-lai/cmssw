@@ -1,0 +1,17 @@
+<use name="DataFormats/BeamSpot"/>
+<use name="DataFormats/Candidate"/>
+<use name="DataFormats/Common"/>
+<use name="DataFormats/L1Trigger"/>
+<use name="DataFormats/Math"/>
+<use name="DataFormats/SiPixelCluster"/>
+<use name="DataFormats/SiPixelDetId"/>
+<use name="DataFormats/TrackerCommon"/>
+<use name="FWCore/Framework"/>
+<use name="FWCore/ParameterSet"/>
+<use name="Geometry/CommonTopologies"/>
+<use name="Geometry/Records"/>
+<use name="Geometry/TrackerGeometryBuilder"/>
+<use name="PhysicsTools/ONNXRuntime"/>
+<library file="SiPixelClusterNNSplitter.cc" name="RecoLocalTrackerSubCollectionProducersNNPlugins">
+  <flags EDM_PLUGIN="1"/>
+</library>

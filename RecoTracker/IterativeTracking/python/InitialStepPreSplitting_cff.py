@@ -322,6 +322,22 @@ _InitialStepPreSplittingTask_LowPU = cms.Task(
 )
 trackingLowPU.toReplaceWith(InitialStepPreSplittingTask, _InitialStepPreSplittingTask_LowPU)
 (trackingPhase2PU140 & ~splitClustersInPhase2Pixel).toReplaceWith(InitialStepPreSplittingTask, _InitialStepPreSplittingTask_LowPU)
+
+# Phase-2 network cluster splitter: siPixelClusters are the clusterizer's clusters with the merged clusters in jet
+# cores split by SiPixelClusterNNSplitter; no pre-splitting tracking pass. Its region comes from calorimeter jets
+# without vertex correction and its vertex from the L1 track-trigger vertex, so it does not depend on tracking.
+from Configuration.ProcessModifiers.nnSplitClustersInPhase2Pixel_cff import nnSplitClustersInPhase2Pixel
+from RecoJets.JetProducers.caloJetsForTrk_cff import caloTowerForTrk, ak4CaloJetsForTrk as _ak4CaloJetsForTrk
+from RecoLocalTracker.SubCollectionProducers.siPixelClusterNNSplitter_cfi import siPixelClusterNNSplitter as _siPixelClusterNNSplitter
+siPixelClustersUnsplit = _siPixelClusters.clone()
+ak4CaloJetsForNNSplit = _ak4CaloJetsForTrk.clone(doPVCorrection = False, srcPVs = '')
+(trackingPhase2PU140 & nnSplitClustersInPhase2Pixel).toReplaceWith(siPixelClusters, _siPixelClusterNNSplitter.clone(
+    pixelClusters = 'siPixelClustersUnsplit',
+    jets          = 'ak4CaloJetsForNNSplit'
+))
+_InitialStepPreSplittingTask_nnSplit = _InitialStepPreSplittingTask_LowPU.copy()
+_InitialStepPreSplittingTask_nnSplit.add(siPixelClustersUnsplit, caloTowerForTrk, ak4CaloJetsForNNSplit)
+(trackingPhase2PU140 & nnSplitClustersInPhase2Pixel).toReplaceWith(InitialStepPreSplittingTask, _InitialStepPreSplittingTask_nnSplit)
 splitClustersInPhase2Pixel.toModify(siPixelClusters,
     centralMIPCharge  = cms.double(12000),
     expSizeXAtLorentzAngleIncidence = cms.double(1.5),
