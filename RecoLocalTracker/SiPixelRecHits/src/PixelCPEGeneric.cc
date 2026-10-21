@@ -47,6 +47,7 @@ PixelCPEGeneric::PixelCPEGeneric(edm::ParameterSet const& conf,
 
   // Externally settable flags to inflate errors
   inflate_errors = conf.getParameter<bool>("inflate_errors");
+  useSplitClusterErrors_ = conf.getParameter<bool>("useSplitClusterErrors");
   inflate_all_errors_no_trk_angle = conf.getParameter<bool>("inflate_all_errors_no_trk_angle");
 
   NoTemplateErrorsWhenNoTrkAngles_ = conf.getParameter<bool>("NoTemplateErrorsWhenNoTrkAngles");
@@ -425,6 +426,15 @@ LocalError PixelCPEGeneric::localError(DetParam const& theDetParam, ClusterParam
   if (theClusterParam.qBin_ == 0)
     LogDebug("PixelCPEGeneric") << " qbin 0 " << xerr << " " << yerr;
 
+  if (useSplitClusterErrors_) {
+    const auto* clu = theClusterParam.theCluster;
+    if (clu->getSplitClusterErrorX() > 0.0f && clu->getSplitClusterErrorX() < clusterSplitMaxError_ &&
+        clu->getSplitClusterErrorY() > 0.0f && clu->getSplitClusterErrorY() < clusterSplitMaxError_) {
+      xerr = clu->getSplitClusterErrorX() * 1.0e-4f;  // um -> cm
+      yerr = clu->getSplitClusterErrorY() * 1.0e-4f;
+    }
+  }
+
   auto xerr_sq = xerr * xerr;
   auto yerr_sq = yerr * yerr;
 
@@ -442,6 +452,10 @@ void PixelCPEGeneric::fillPSetDescription(edm::ParameterSetDescription& desc) {
   desc.add<double>("EdgeClusterErrorX", 50.0);
   desc.add<double>("EdgeClusterErrorY", 85.0);
   desc.add<bool>("inflate_errors", false);
+  desc.add<bool>("useSplitClusterErrors", false)
+      ->setComment(
+          "use the per-cluster error set by a cluster splitter (setSplitClusterErrorX/Y, um), as the template CPE "
+          "does");
   desc.add<bool>("inflate_all_errors_no_trk_angle", false);
   desc.add<bool>("NoTemplateErrorsWhenNoTrkAngles", false);
   desc.add<bool>("UseErrorsFromTemplates", true);

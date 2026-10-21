@@ -83,6 +83,7 @@ protected:
   float the_size_cutY;
 
   bool inflate_errors;
+  bool useSplitClusterErrors_;  // use the error a cluster splitter attached to a split cluster
   bool inflate_all_errors_no_trk_angle;
 
   bool DoCosmics_;
