@@ -39,6 +39,9 @@ using namespace Pythia8;
 //biased tau decayer
 #include "GeneratorInterface/Pythia8Interface/interface/BiasedTauDecayer.h"
 
+//exclusive eta/eta' decayer
+#include "GeneratorInterface/Pythia8Interface/interface/EtaDecayer.h"
+
 //decay filter hook
 #include "GeneratorInterface/Pythia8Interface/interface/ResonanceDecayFilterHook.h"
 
@@ -183,6 +186,9 @@ private:
 
   // biased tau decayer
   std::shared_ptr<BiasedTauDecayer> fBiasedTauDecayer;
+
+  // exclusive eta/eta' decayer
+  std::shared_ptr<EtaDecayer> fEtaDecayer;
 
   //resonance decay filter hook
   std::shared_ptr<ResonanceDecayFilterHook> fResonanceDecayFilterHook;
@@ -513,6 +519,16 @@ bool Pythia8Hadronizer::initializeForInternalPartons() {
     fMasterGen->setDecayPtr(fBiasedTauDecayer, handledParticles);
   }
 
+  if (fMasterGen->settings.flag("EtaDecayer:filter")) {
+    if (biasedTauDecayer)
+      throw edm::Exception(edm::errors::Configuration, "Pythia8Interface")
+          << "EtaDecayer:filter and BiasedTauDecayer:filter cannot both be on: Pythia8 has a single DecayHandler";
+    if (!fEtaDecayer.get())
+      fEtaDecayer = std::make_shared<EtaDecayer>(fMasterGen.get(), &(fMasterGen->settings));
+    std::vector<int> handledParticles = {fMasterGen->settings.mode("EtaDecayer:parent")};
+    fMasterGen->setDecayPtr(fEtaDecayer, handledParticles);
+  }
+
   bool resonanceDecayFilter = fMasterGen->settings.flag("ResonanceDecayFilter:filter");
   if (resonanceDecayFilter) {
     fResonanceDecayFilterHook.reset(new ResonanceDecayFilterHook);
@@ -680,6 +696,16 @@ bool Pythia8Hadronizer::initializeForExternalPartons() {
     fMasterGen->setDecayPtr(fBiasedTauDecayer, handledParticles);
   }
 
+  if (fMasterGen->settings.flag("EtaDecayer:filter")) {
+    if (biasedTauDecayer)
+      throw edm::Exception(edm::errors::Configuration, "Pythia8Interface")
+          << "EtaDecayer:filter and BiasedTauDecayer:filter cannot both be on: Pythia8 has a single DecayHandler";
+    if (!fEtaDecayer.get())
+      fEtaDecayer = std::make_shared<EtaDecayer>(fMasterGen.get(), &(fMasterGen->settings));
+    std::vector<int> handledParticles = {fMasterGen->settings.mode("EtaDecayer:parent")};
+    fMasterGen->setDecayPtr(fEtaDecayer, handledParticles);
+  }
+
   bool resonanceDecayFilter = fMasterGen->settings.flag("ResonanceDecayFilter:filter");
   if (resonanceDecayFilter) {
     fResonanceDecayFilterHook.reset(new ResonanceDecayFilterHook);
@@ -803,6 +829,11 @@ bool Pythia8Hadronizer::generatePartonsAndHadronize() {
     nMEFiltered = fJetMatchingPy8InternalHook->nMEpartons().second;
   }
 
+  if (fEtaDecayer.get() && !fEtaDecayer->decayOnePerEvent()) {
+    event().reset();
+    return false;
+  }
+
   if (evtgenDecays.get())
     evtgenDecays->decay();
 
@@ -920,6 +951,11 @@ bool Pythia8Hadronizer::hadronize() {
   // update LHE matching statistics
   //
   lheEvent()->count(lhef::LHERunInfo::kAccepted, 1.0, mergeweight);
+
+  if (fEtaDecayer.get() && !fEtaDecayer->decayOnePerEvent()) {
+    event().reset();
+    return false;
+  }
 
   if (evtgenDecays.get())
     evtgenDecays->decay();
